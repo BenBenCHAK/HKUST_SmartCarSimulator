@@ -1,4 +1,4 @@
-#include "client.h"
+#include "SClib.h"
 #include <string>
 
 serverSmartCar::serverSmartCar() {

@@ -1,5 +1,5 @@
 #include <iostream>
-#include "lib/client.cpp"
+#include "lib/SClib.cpp"
 using namespace std;
 
 int main() {
