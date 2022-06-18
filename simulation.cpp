@@ -6,6 +6,8 @@ int main() {
     serverSmartCar hi;
     hi.connectServer();
 
+    
+
     hi.motorSpeed(19800);
 
     Sleep(1000);
