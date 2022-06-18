@@ -2,8 +2,11 @@ import numpy as np
 import socket
 import time
 
-IMG_WIDTH = 10#128
-IMG_HEIGHT = 12#120
+IMG_WIDTH = 128
+IMG_HEIGHT = 120
+
+# IMG_WIDTH = 10
+# IMG_HEIGHT = 12
 
 class pySCserver:
     def __init__(self):
@@ -89,7 +92,9 @@ if __name__ == '__main__':
 
         sc.parseCommand(5)
 
-        img = generateRandom(IMG_WIDTH, IMG_HEIGHT)
-        sc.send(imgEncode(img, IMG_WIDTH, IMG_HEIGHT))
+        img_matrix = generateRandom(IMG_WIDTH, IMG_HEIGHT)
+        # print(img_matrix[0][0], img_matrix[89][64], img_matrix[120 - 1][128 - 1])
+        # print(img_matrix)
+        sc.send(imgEncode(img_matrix, IMG_WIDTH, IMG_HEIGHT))
 
         time.sleep(0.1)

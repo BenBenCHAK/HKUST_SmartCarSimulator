@@ -101,13 +101,11 @@ void serverSmartCar::getImg() {
 	printf("------------------------------------------\n");
 	for (int i = 0; i < NUM_PIXEL_ENCODED; i += 2) {
 		if (recvBuf[i] == 0) {
-			img_matrix[i % IMG_HEIGHT][i % IMG_WIDTH] = recvBuf[i + 1];
+			img_matrix[(i/2) / IMG_WIDTH][(i/2) % IMG_WIDTH] = recvBuf[i + 1];
 		} else {
-			img_matrix[i % IMG_HEIGHT][i % IMG_WIDTH] = recvBuf[i + 1] + 128;
+			img_matrix[(i/2) / IMG_WIDTH][(i/2) % IMG_WIDTH] = recvBuf[i + 1] + 128;
 		}
-
-		printf("%4d", img_matrix[i % IMG_HEIGHT][i % IMG_WIDTH]);
-		if ((i/2) % IMG_WIDTH == IMG_WIDTH - 1) printf("\n");
 	}
+	// printf("%4d %4d %4d\n", img_matrix[0][0], img_matrix[89][64], img_matrix[120 - 1][128 - 1]);
 	printf("------------------------------------------\n");
 }

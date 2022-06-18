@@ -5,8 +5,11 @@
 #include <Winsock2.h>
 #include <windows.h>
 
-#define IMG_WIDTH 10//128
-#define IMG_HEIGHT 12//120
+#define IMG_WIDTH 128
+#define IMG_HEIGHT 120
+
+// #define IMG_WIDTH 10
+// #define IMG_HEIGHT 12
 
 #pragma comment(lib,"ws2_32.lib")
 #pragma warning(disable:4996)
