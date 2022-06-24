@@ -20,10 +20,12 @@ class serverSmartCar {
         ~serverSmartCar();
 
         int connectServer(const char* ip, const int port);
-        void close();
 
         void motorSpeed(int speed);
         void motorTurn(int angle);
+
+        void getImg();
+        void printImg();
 
     private:
         WORD wVersionRequested;
@@ -35,9 +37,7 @@ class serverSmartCar {
         SOCKET sockClient;
         SOCKADDR_IN addrSrv;
 
-        uint8_t img_matrix[IMG_HEIGHT][IMG_WIDTH];
-
-        void getImg();
+        uint8_t img_matrix[IMG_HEIGHT][IMG_WIDTH]; 
 };
 
 #endif

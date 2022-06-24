@@ -12,7 +12,7 @@ class pySCserver:
     def __init__(self):
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.bind(("localhost", 8888))
-        print("Server started")
+        print("-----Server started")
         self.server.listen(0)
         self.connection, self.address = self.server.accept()
 
@@ -20,7 +20,7 @@ class pySCserver:
 
     def __del__(self):
         self.connection.close()
-        input("Server ended with counter: " + str(self.__counter))
+        input("-----Server ended with counter: " + str(self.__counter))
 
     def addCounter(self):
         self.__counter += 1
@@ -36,14 +36,30 @@ class pySCserver:
         self.connection.sendall(data)
 
     def parseCommand(self, num_bytes):
+        if len(self.__recv_str) == 1:
+            self.__recv_str += '\0\0'
+        elif len(self.__recv_str) == 2:
+            self.__recv_str += '\0'
+
         if self.__recv_str[0] == 'F':
-            print("Move forward for speed of", int(self.__recv_str[1:num_bytes]))
+            print("Move forward for speed of", (ord(self.__recv_str[2]) - 1) * 128 + ord(self.__recv_str[1]))
         elif self.__recv_str[0] == 'B':
-            print("Move backward for speed of", int(self.__recv_str[1:num_bytes]))
+            print("Move backward for speed of", (ord(self.__recv_str[2]) - 1) * 128 + ord(self.__recv_str[1]))
         elif self.__recv_str[0] == 'L':
-            print("Turn left for degree of", int(self.__recv_str[1:num_bytes]))
+            print("Turn left for degree of", (ord(self.__recv_str[2]) - 1) * 128 + ord(self.__recv_str[1]))
         elif self.__recv_str[0] == 'R':
-            print("Turn right for degree of", int(self.__recv_str[1:num_bytes]))
+            print("Turn right for degree of", (ord(self.__recv_str[2]) - 1) * 128 + ord(self.__recv_str[1]))
+        elif self.__recv_str == 'STP':
+            print("Stop")
+        elif self.__recv_str == 'STR':
+            print("Do not turn")
+        elif self.__recv_str == 'GET':
+            img_matrix = generateGradient(IMG_WIDTH, IMG_HEIGHT)
+            # img_matrix = generateRandom(IMG_WIDTH, IMG_HEIGHT)
+            # print(img_matrix[0][0], img_matrix[89][64], img_matrix[120 - 1][128 - 1])
+            # print(img_matrix)
+            
+            self.send(imgEncode(img_matrix, IMG_WIDTH, IMG_HEIGHT))
         else:
             print("Unknown command")
 
@@ -86,15 +102,10 @@ if __name__ == '__main__':
     while True:
         sc.addCounter()
 
-        sc.receive(5)
+        sc.receive(3)
         if not sc.getReceivedString():
             break
 
-        sc.parseCommand(5)
-
-        img_matrix = generateRandom(IMG_WIDTH, IMG_HEIGHT)
-        # print(img_matrix[0][0], img_matrix[89][64], img_matrix[120 - 1][128 - 1])
-        # print(img_matrix)
-        sc.send(imgEncode(img_matrix, IMG_WIDTH, IMG_HEIGHT))
+        sc.parseCommand(3)
 
         time.sleep(0.1)
