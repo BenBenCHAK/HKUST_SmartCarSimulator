@@ -1,6 +1,5 @@
 import numpy as np
 import socket
-import time
 
 IMG_WIDTH = 128
 IMG_HEIGHT = 120
@@ -95,17 +94,3 @@ def imgEncode(img_matrix, img_width, img_height):
     return bytes(temp_string, encoding="ascii")
 
     # return bytes("".join(chr(0) + chr(pixel) if pixel >= 0 and pixel < 128 else chr(127) + chr(pixel - 128) for pixel in img_serial), encoding="ascii")
-
-if __name__ == '__main__':
-    sc = pySCserver()
-
-    while True:
-        sc.addCounter()
-
-        sc.receive(3)
-        if not sc.getReceivedString():
-            break
-
-        sc.parseCommand(3)
-
-        time.sleep(0.1)
