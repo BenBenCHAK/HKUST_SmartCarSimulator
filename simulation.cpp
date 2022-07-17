@@ -2,40 +2,59 @@
 #include "lib/SClib.cpp"
 using namespace std;
 
+void debugControl(serverSmartCar &sc) {
+    sc.getImg();
+    // sc.printImg();
+
+    sc.motorSpeed(-19800);
+    sc.motorSpeed(-16256);
+    sc.motorSpeed(-16255);
+    sc.motorSpeed(-150);
+    sc.motorSpeed(-100);
+
+    sc.motorSpeed(0);
+
+    sc.motorSpeed(100);
+    sc.motorSpeed(150);
+    sc.motorSpeed(16255);
+    sc.motorSpeed(16256);
+    sc.motorSpeed(19800);
+
+    sc.motorTurn(-19800);
+    sc.motorTurn(-16256);
+    sc.motorTurn(-16255);
+    sc.motorTurn(-150);
+    sc.motorTurn(-100);
+
+    sc.motorTurn(0);
+    
+    sc.motorTurn(100);
+    sc.motorTurn(150);
+    sc.motorTurn(16255);
+    sc.motorTurn(16256);
+    sc.motorTurn(19800);
+}
+
+void simpleControl(serverSmartCar &sc) {
+    Sleep(1000);
+    
+    sc.motorTurn(15000);
+
+    Sleep(1000);
+
+    sc.motorSpeed(15000);
+
+    Sleep(1000);
+
+    sc.motorTurn(-15000);
+}
+
 int main() {
     serverSmartCar hi;
     hi.connectServer();
 
-    hi.getImg();
-    // hi.printImg();
-
-    hi.motorSpeed(-19800);
-    hi.motorSpeed(-16256);
-    hi.motorSpeed(-16255);
-    hi.motorSpeed(-150);
-    hi.motorSpeed(-100);
-
-    hi.motorSpeed(0);
-
-    hi.motorSpeed(100);
-    hi.motorSpeed(150);
-    hi.motorSpeed(16255);
-    hi.motorSpeed(16256);
-    hi.motorSpeed(19800);
-
-    hi.motorTurn(-19800);
-    hi.motorTurn(-16256);
-    hi.motorTurn(-16255);
-    hi.motorTurn(-150);
-    hi.motorTurn(-100);
-
-    hi.motorTurn(0);
-    
-    hi.motorTurn(100);
-    hi.motorTurn(150);
-    hi.motorTurn(16255);
-    hi.motorTurn(16256);
-    hi.motorTurn(19800);
+    // debugControl(hi);
+    simpleControl(hi);
 
     return 0;
 }

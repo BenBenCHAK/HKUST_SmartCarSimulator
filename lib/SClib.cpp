@@ -62,7 +62,6 @@ void serverSmartCar::printImg() {
 			printf("%4d ", img_matrix[y][x]);
 		printf("\n");
 	}
-		
 }
 
 void serverSmartCar::motorSpeed(int speed = 0) {

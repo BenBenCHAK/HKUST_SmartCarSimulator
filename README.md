@@ -56,7 +56,7 @@ pip install Pillow
 └── smart_car.py
 ```
 
-The "lib" directory contains the C++ library for the client side to get the image from the car in the server side and control the car as needed. The "simulation.cpp" is a demo code for the library's usage. As for the "makefile", it is a reference for you to compile the "simulation.cpp" into the "simulation.exe".
+The "lib" directory contains the C++ library for the client side to get the image from the car in the server side and control the car as needed. The "simulation.cpp" is a **quickstart** demo code for the library's usage. As for the "makefile", it is a reference for you to compile the "simulation.cpp" into the "simulation.exe".
 
 The "src" directory contains 3D materials and textures for the car simulation. To run the server, just run "smart_car.py", which includes the module "smart_car_server.py" inside.
 
@@ -72,6 +72,8 @@ For the client side, move to the root and run:
 make
 .\simulation.exe
 ```
+
+> Hint: If you cannot "make", then just manually compile the C++ code. Refer to the makefile.
 
 <!-- ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. -->
