@@ -75,6 +75,11 @@ make
 
 > Hint: If you cannot "make", then just manually compile the C++ code. Refer to the makefile.
 
+## To-do list
+1. Client real time control
+2. Sending camera image to client
+3. Multi threading applied
+
 <!-- ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. -->
 

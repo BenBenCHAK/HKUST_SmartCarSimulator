@@ -1,6 +1,8 @@
 #include <iostream>
+
+// #include ""
+
 #include "lib/SClib.cpp"
-using namespace std;
 
 void debugControl(serverSmartCar &sc) {
     sc.getImg();
@@ -50,11 +52,11 @@ void simpleControl(serverSmartCar &sc) {
 }
 
 int main() {
-    serverSmartCar hi;
-    hi.connectServer();
+    serverSmartCar server;
+    server.connectServer();
 
     // debugControl(hi);
-    simpleControl(hi);
+    // simpleControl(hi);
 
     return 0;
 }
