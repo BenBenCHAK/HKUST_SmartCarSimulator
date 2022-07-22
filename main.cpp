@@ -40,40 +40,30 @@ int main(int argc, char *argv[]) {
     int len = WIDTH * HEIGHT * 3;
     char* pixels = new char[len];
     for (int i = 0; i < len; i++) {
-        if (i % 3 == 1)
-            pixels[i] = 255;
-        else
-            pixels[i] = 0;        
-    }
-    SDL_Surface *surface = SDL_CreateRGBSurfaceFrom((void*)pixels, WIDTH, HEIGHT, 8*3, HEIGHT*3, 0xFF0000, 0x00FF00, 0x0000FF, 0x000000);
-    if (surface == NULL) {
-        std::cout << "Error loading image: " << SDL_GetError() << std::endl;
-        return 5;
+        pixels[i] = 0;
     }
 
-    SDL_Texture* texture = SDL_CreateTextureFromSurface(renderer, surface);
-    if (texture == NULL) {
-        std::cout << "Error creating texture" << std::endl;
-        return 6;
-    }
-
-    for (int i = 0; i < 3; i++) {
-        DestR.x += 20;
-
-        SDL_RenderClear(renderer);
-        SDL_RenderCopy(renderer, texture, &SrcR, &DestR);
-        SDL_RenderPresent(renderer);
-    
-        SDL_Delay(500);
-    }
+    SDL_Texture *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STREAMING, WIDTH, HEIGHT);
 
     SDL_Event windowEvent;
+    int counter = 0;
     while (true) {
         if (SDL_PollEvent(&windowEvent)) {
             if (windowEvent.type == SDL_QUIT) break;
         }
+
+        pixels[counter] = 255 - pixels[counter];
+        pixels[counter+1] = 255 - pixels[counter+1];
+        pixels[counter+2] = 255 - pixels[counter+2];
+
+        SDL_RenderClear(renderer);
+        SDL_UpdateTexture(texture, NULL, pixels, HEIGHT*3);
+        SDL_RenderCopy(renderer, texture, &SrcR, &DestR);
+        SDL_RenderPresent(renderer);
+    
+        counter += 3;
+        SDL_Delay(1);
     }
-    SDL_FreeSurface(surface);
     SDL_DestroyTexture(texture);
 	SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
