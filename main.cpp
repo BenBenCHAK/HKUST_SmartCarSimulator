@@ -1,5 +1,6 @@
 #include <iostream>
 #include <SDL2/SDL.h>
+#include "lib/SClib.cpp"
 
 #define WINDOW_WIDTH 400
 #define WINDOW_HEIGHT 300
@@ -21,6 +22,9 @@ void MOD_SDL_Init_Rect(SDL_Rect *srcrect, SDL_Rect *dstrect) {
 }
 
 int main(int argc, char *argv[]) {
+    serverSmartCar server;
+    server.connectServer();
+
     SDL_Init(SDL_INIT_EVERYTHING);
     MOD_SDL_Init_Rect(&SrcR, &DestR);
 
@@ -37,11 +41,11 @@ int main(int argc, char *argv[]) {
     }
     SDL_SetRenderDrawColor(renderer, 0xCC, 0xCC, 0xCC, 0xFF);
 
-    int len = WIDTH * HEIGHT * 3;
+    int len = WIDTH * HEIGHT * 3, pitch = HEIGHT * 3;
     char* pixels = new char[len];
-    for (int i = 0; i < len; i++) {
-        pixels[i] = 0;
-    }
+    // for (int i = 0; i < len; i++) {
+    //     pixels[i] = 0;
+    // }
 
     SDL_Texture *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGB24, SDL_TEXTUREACCESS_STREAMING, WIDTH, HEIGHT);
 
@@ -52,17 +56,17 @@ int main(int argc, char *argv[]) {
             if (windowEvent.type == SDL_QUIT) break;
         }
 
-        pixels[counter] = 255 - pixels[counter];
-        pixels[counter+1] = 255 - pixels[counter+1];
-        pixels[counter+2] = 255 - pixels[counter+2];
+        SDL_LockTexture(texture, NULL, (void**) &pixels, &pitch);
+        server.getImg1D(pixels);
+        SDL_UnlockTexture(texture);
 
         SDL_RenderClear(renderer);
-        SDL_UpdateTexture(texture, NULL, pixels, HEIGHT*3);
+        SDL_UpdateTexture(texture, NULL, pixels, pitch);
         SDL_RenderCopy(renderer, texture, &SrcR, &DestR);
         SDL_RenderPresent(renderer);
     
-        counter += 3;
-        SDL_Delay(1);
+        counter = (counter + 3) % len;
+        SDL_Delay(100);
     }
     SDL_DestroyTexture(texture);
 	SDL_DestroyRenderer(renderer);

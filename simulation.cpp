@@ -1,11 +1,9 @@
 #include <iostream>
 
-// #include ""
-
 #include "lib/SClib.cpp"
 
 void debugControl(serverSmartCar &sc) {
-    sc.getImg();
+    sc.getImg2D();
     // sc.printImg();
 
     sc.motorSpeed(-19800);

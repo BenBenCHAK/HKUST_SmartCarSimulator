@@ -166,10 +166,11 @@ class pySCserver:
             if debugMode in [0, 2]: print("Turn straight")
             if debugMode in [1, 2]: self.__motor_turn = 0
         elif self.__recv_str == 'GET':
-            img_matrix = generateGradient(IMG_WIDTH, IMG_HEIGHT)
+            # img_matrix = generateGradient(IMG_WIDTH, IMG_HEIGHT)
             # img_matrix = generateRandom(IMG_WIDTH, IMG_HEIGHT)
             # print(img_matrix[0][0], img_matrix[89][64], img_matrix[120 - 1][128 - 1])
             # print(img_matrix)
+            img_matrix = np.uint8(np.dot((p.getCameraImage(128, 120)[2])[...,:3], [0.2989, 0.5870, 0.1140]))
             
             if debugMode in [0, 2]: print("Send image")
             if debugMode in [1, 2]: self.send(imgEncode(img_matrix, IMG_WIDTH, IMG_HEIGHT))
