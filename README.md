@@ -42,6 +42,8 @@ pip install Pillow
 ```
 /
 ├── lib
+│   ├── sdl
+│   │    └── ...
 │   ├── SClib.cpp
 │   ├── SClib.h
 │   └── smart_car_server.py
@@ -50,15 +52,20 @@ pip install Pillow
 │   ├── simpleplane.urdf
 │   ├── track.urdf
 │   └── track_smaller.png
+├── SDL2.dll
 ├── makefile
 ├── simulation.cpp
 ├── simulation.exe
+├── simulation_gui.cpp
+├── simulation_gui.exe
 └── smart_car.py
 ```
 
-The "lib" directory contains the C++ library for the client side to get the image from the car in the server side and control the car as needed. The "simulation.cpp" is a **quickstart** demo code for the library's usage. As for the "makefile", it is a reference for you to compile the "simulation.cpp" into the "simulation.exe".
+The "lib" directory contains both C++ and Python libraries for the client side to get the image from the car in the server side and control the car as needed.
 
 The "src" directory contains 3D materials and textures for the car simulation. To run the server, just run "smart_car.py", which includes the module "smart_car_server.py" inside.
+
+In the root directory, "simulation.cpp" is a **quickstart** demo code for the library's usage. The "simulation_gui.cpp" is a tester C++ source code for testing if the images are correctly received, with the aid of the SDL2 library. As for the "makefile", it is a reference for you to compile the C++ codes into executables.
 
 ### Starting both the server and client simultaneously
 
@@ -76,9 +83,10 @@ make
 > Hint: If you cannot "make", then just manually compile the C++ code. Refer to the makefile.
 
 ## To-do list
-1. Client real time control
-2. Sending camera image to client
-3. Multi threading applied
+1. Multi threading applied
+2. Client real time control
+3. Sending camera image to client with speed
+4. Use [protocalbuffers](https://github.com/protocolbuffers/protobuf) to serialize the image data for sending and receiving
 
 <!-- ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. -->

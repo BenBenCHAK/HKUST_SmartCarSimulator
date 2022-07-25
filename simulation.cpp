@@ -4,7 +4,6 @@
 
 void debugControl(serverSmartCar &sc) {
     sc.getImg2D();
-    // sc.printImg();
 
     sc.motorSpeed(-19800);
     sc.motorSpeed(-16256);
@@ -53,8 +52,8 @@ int main() {
     serverSmartCar server;
     server.connectServer();
 
-    // debugControl(hi);
-    // simpleControl(hi);
+    // debugControl(server);
+    simpleControl(server);
 
     return 0;
 }
