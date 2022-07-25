@@ -1,10 +1,9 @@
 #include <iostream>
+
 #include "lib/SClib.cpp"
-using namespace std;
 
 void debugControl(serverSmartCar &sc) {
-    sc.getImg();
-    // sc.printImg();
+    sc.getImg2D();
 
     sc.motorSpeed(-19800);
     sc.motorSpeed(-16256);
@@ -50,11 +49,11 @@ void simpleControl(serverSmartCar &sc) {
 }
 
 int main() {
-    serverSmartCar hi;
-    hi.connectServer();
+    serverSmartCar server;
+    server.connectServer();
 
-    // debugControl(hi);
-    simpleControl(hi);
+    // debugControl(server);
+    simpleControl(server);
 
     return 0;
 }
