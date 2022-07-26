@@ -29,12 +29,13 @@ class pyBulletView:
         self.takePicClicked = p.readUserDebugParameter(self.takePic)
         
         # PyBullet load materials
-        self.car = p.loadURDF('/src/simplecar.urdf', [0, 0, 0.1])
+        self.car = p.loadURDF('/src/simplecar.urdf', [0, 0, 0.1], globalScaling=0.5)
         self.plane = p.loadURDF('/src/simpleplane.urdf')
-        self.baseId = p.loadURDF("/src/track.urdf", [0, 0, 0], useFixedBase=1, globalScaling=0.1)
-        self.baseTextureId = p.loadTexture("/src/track_smaller.png")
-
-        p.changeVisualShape(self.baseId, -1, textureUniqueId=self.baseTextureId)
+        self.trackId = p.createVisualShape(p.GEOM_MESH, fileName="/src/track.obj", meshScale=[1]*3, rgbaColor=[1]*3+[1])
+        p.createMultiBody(0, baseVisualShapeIndex=self.trackId, basePosition=[-4, -4, -0.08])
+        # self.baseId = p.loadURDF("/src/track.urdf", [0, 0, 0], useFixedBase=1, globalScaling=0.1)
+        # self.baseTextureId = p.loadTexture("/src/track_smaller.png")
+        # p.changeVisualShape(self.baseId, -1, textureUniqueId=self.baseTextureId)
 
         self.wheel_indices = [1, 3, 4, 5]
         self.hinge_indices = [0, 2]
@@ -90,12 +91,7 @@ class pyBulletView:
         p.stepSimulation()
         sleep(delay)
 
-import threading
-
 class pySCserver:
-    # def listen(self):
-    #     self.server.listen(0)
-
     def __init__(self):
         self.pBV = pyBulletView()
 
@@ -105,10 +101,10 @@ class pySCserver:
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.bind(("localhost", 8888))
         print("-----Server started")
-        self.server.listen(0)
-        # self.thread = threading.Thread(target=self.listen)
-        # self.thread.start()
+        # self.server.setblocking(False)
+        self.server.listen(1)
         self.connection, self.address = self.server.accept()
+        # self.connection.setblocking(False)
 
         self.__counter = 0
 
@@ -130,6 +126,12 @@ class pySCserver:
 
     def receive(self, num_bytes):
         self.__recv_str = self.connection.recv(1024)[0:num_bytes].decode("ascii")
+        # try:
+        #     self.connection, self.address = self.server.accept()
+        #     self.connection.setblocking(False)
+        #     self.__recv_str = self.connection.recv(1024)[0:num_bytes].decode("ascii")
+        # except:
+        #     pass
     def getReceivedString(self):
         return self.__recv_str
 
@@ -166,7 +168,7 @@ class pySCserver:
             if debugMode in [0, 2]: print("Turn straight")
             if debugMode in [1, 2]: self.__motor_turn = 0
         elif self.__recv_str == 'GET':
-            img_matrix = np.uint8(np.dot((p.getCameraImage(128, 120)[2])[...,:3], [0.2989, 0.5870, 0.1140]))
+            img_matrix = np.uint8(np.dot((p.getCameraImage(IMG_WIDTH, IMG_HEIGHT)[2])[...,:3], [0.2989, 0.5870, 0.1140]))
             
             if debugMode in [0, 2]: print("Send image")
             if debugMode in [1, 2]: self.send(imgEncode(img_matrix, IMG_WIDTH, IMG_HEIGHT))
