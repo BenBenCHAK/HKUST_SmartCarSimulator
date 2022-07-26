@@ -29,12 +29,13 @@ class pyBulletView:
         self.takePicClicked = p.readUserDebugParameter(self.takePic)
         
         # PyBullet load materials
-        self.car = p.loadURDF('/src/simplecar.urdf', [0, 0, 0.1])
+        self.car = p.loadURDF('/src/simplecar.urdf', [0, 0, 0.1], globalScaling=0.5)
         self.plane = p.loadURDF('/src/simpleplane.urdf')
-        self.baseId = p.loadURDF("/src/track.urdf", [0, 0, 0], useFixedBase=1, globalScaling=0.1)
-        self.baseTextureId = p.loadTexture("/src/track_smaller.png")
-
-        p.changeVisualShape(self.baseId, -1, textureUniqueId=self.baseTextureId)
+        self.trackId = p.createVisualShape(p.GEOM_MESH, fileName="/src/track.obj", meshScale=[1]*3, rgbaColor=[1]*3+[1])
+        p.createMultiBody(0, baseVisualShapeIndex=self.trackId, basePosition=[-4, -4, -0.08])
+        # self.baseId = p.loadURDF("/src/track.urdf", [0, 0, 0], useFixedBase=1, globalScaling=0.1)
+        # self.baseTextureId = p.loadTexture("/src/track_smaller.png")
+        # p.changeVisualShape(self.baseId, -1, textureUniqueId=self.baseTextureId)
 
         self.wheel_indices = [1, 3, 4, 5]
         self.hinge_indices = [0, 2]
