@@ -38,14 +38,17 @@ void simpleControl(serverSmartCar &sc) {
     Sleep(1000);
     
     sc.motorTurn(15000);
+    std::cout << "turn right now" << std::endl;
 
     Sleep(1000);
 
     sc.motorSpeed(15000);
+    std::cout << "go fast now" << std::endl;
 
     Sleep(1000);
 
     sc.motorTurn(-15000);
+    std::cout << "turn left now" << std::endl;
 }
 
 int main() {
@@ -53,7 +56,8 @@ int main() {
     server.connectServer();
 
     // debugControl(server);
-    simpleControl(server);
+    // simpleControl(server);
+    server.motorSpeed(15000);
 
     return 0;
 }

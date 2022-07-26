@@ -90,12 +90,7 @@ class pyBulletView:
         p.stepSimulation()
         sleep(delay)
 
-import threading
-
 class pySCserver:
-    # def listen(self):
-    #     self.server.listen(0)
-
     def __init__(self):
         self.pBV = pyBulletView()
 
@@ -105,10 +100,10 @@ class pySCserver:
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.bind(("localhost", 8888))
         print("-----Server started")
-        self.server.listen(0)
-        # self.thread = threading.Thread(target=self.listen)
-        # self.thread.start()
+        # self.server.setblocking(False)
+        self.server.listen(1)
         self.connection, self.address = self.server.accept()
+        # self.connection.setblocking(False)
 
         self.__counter = 0
 
@@ -130,6 +125,12 @@ class pySCserver:
 
     def receive(self, num_bytes):
         self.__recv_str = self.connection.recv(1024)[0:num_bytes].decode("ascii")
+        # try:
+        #     self.connection, self.address = self.server.accept()
+        #     self.connection.setblocking(False)
+        #     self.__recv_str = self.connection.recv(1024)[0:num_bytes].decode("ascii")
+        # except:
+        #     pass
     def getReceivedString(self):
         return self.__recv_str
 
@@ -166,7 +167,7 @@ class pySCserver:
             if debugMode in [0, 2]: print("Turn straight")
             if debugMode in [1, 2]: self.__motor_turn = 0
         elif self.__recv_str == 'GET':
-            img_matrix = np.uint8(np.dot((p.getCameraImage(128, 120)[2])[...,:3], [0.2989, 0.5870, 0.1140]))
+            img_matrix = np.uint8(np.dot((p.getCameraImage(IMG_WIDTH, IMG_HEIGHT)[2])[...,:3], [0.2989, 0.5870, 0.1140]))
             
             if debugMode in [0, 2]: print("Send image")
             if debugMode in [1, 2]: self.send(imgEncode(img_matrix, IMG_WIDTH, IMG_HEIGHT))
