@@ -106,7 +106,6 @@ void serverSmartCar::motorSpeed(int speed = 0) {
 
 	char recvBuf[1];
 	recv(sockClient, recvBuf, 1, 0);
-	printf("%s", recvBuf);
 }
 void serverSmartCar::motorTurn(int angle = 0) {
 	if (hasErr) return;
@@ -128,5 +127,4 @@ void serverSmartCar::motorTurn(int angle = 0) {
 
 	char recvBuf[1];
 	recv(sockClient, recvBuf, 1, 0);
-	printf("%s", recvBuf);
 }

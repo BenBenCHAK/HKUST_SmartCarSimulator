@@ -104,16 +104,18 @@ class pySCserver:
         self.server.bind(("localhost", 8888))
         self.server.setblocking(False)
         self.server.listen(1)
-        self.inputs = [self.server]
-        print("-----Server started")
 
+        self.inputs = [self.server]
+        self.outputs = []
+
+        print("-----Server started")
         self.__counter = 0
 
     def __del__(self):
-        try:
-            self.connection.close()
-        except:
-            pass
+        # try:
+        #     self.connection.close()
+        # except:
+        #     pass
         print("-----Server ended with counter: " + str(self.__counter))
 
     def loop(self, delay=DEFAULT_FRAME_RATE):
@@ -129,34 +131,44 @@ class pySCserver:
         return self.__counter
 
     def receive(self, num_bytes):
-        readable, _, _ = select.select(self.inputs, [], [], 0)
+        readable, _, exceptional = select.select(self.inputs, self.outputs, self.inputs, 0)
 
-        print(len(self.inputs), len(readable))
-        for sck in readable:
-            if sck is self.server:
-                self.connection, self.address = sck.accept()
+        for s in readable:
+            if s is self.server:
+                self.connection, self.address = s.accept()
                 self.connection.setblocking(False)
                 self.inputs.append(self.connection)
             else:
-                self.__recv_str = sck.recv(1024)[0:num_bytes].decode("ascii")
-                sck.close()
-                self.inputs.remove(sck)
+                self.__recv_str = s.recv(1024)[0:num_bytes].decode("ascii")
+                if self.__recv_str:
+                    if s not in self.outputs:
+                        self.outputs.append(s)
+                else:
+                    if s in self.outputs:
+                        self.outputs.remove(s)
+                    self.inputs.remove(s)
+                    s.close()
 
-        # try:
-        #     self.connection, self.address = self.server.accept()
-        #     self.__recv_str = self.connection.recv(1024)[0:num_bytes].decode("ascii")
-        #     self.connection.setblocking(False)
-        #     self.connection.close()
-        # except:
-        #     pass
+        for s in exceptional:
+            self.inputs.remove(s)
+            if s in self.outputs:
+                self.outputs.remove(s)
+            s.close()
     def getReceivedString(self):
         return self.__recv_str
 
     def send(self, data):
-        try:
-            self.connection.sendall(data)
-        except:
-            pass
+        _, writable, exceptional = select.select(self.inputs, self.outputs, self.inputs, 0)
+
+        for sck in writable:
+            sck.sendall(data)
+            self.outputs.remove(sck)
+
+        for s in exceptional:
+            self.inputs.remove(s)
+            if s in self.outputs:
+                self.outputs.remove(s)
+            s.close()
         
     def parseCommand(self, debugMode=1):
         if not self.__recv_str:
@@ -196,7 +208,7 @@ class pySCserver:
             print("Unknown command")
 
         if (self.__recv_str[0] in ['F', 'B', 'L', 'R', 'S']) or self.__recv_str == 'GET' and debugMode == 0:
-            self.send("X")
+            self.send(b"X")
 
 def generateZeros(img_width, img_height):
     return np.zeros((img_width, img_height), dtype=np.uint8)
