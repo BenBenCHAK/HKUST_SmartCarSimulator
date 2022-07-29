@@ -12,7 +12,8 @@ if __name__ == '__main__':
     while True:
         sc.receive(3)
 
-        sc.parseCommand(2)
+        # 0 for debug message, 1 for real control and 2 for both
+        sc.parseCommand(1)
 
         sc.loop()
 

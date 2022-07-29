@@ -9,10 +9,15 @@ from time import sleep
 import socket
 import select
 
+from math import pi
+
 IMG_WIDTH = 128
 IMG_HEIGHT = 120
 
 DEFAULT_FRAME_RATE = 1./240.
+
+MAX_THROTTLE = 50 #20
+MAX_STEERING = 1 #0.5
 
 # IMG_WIDTH = 10
 # IMG_HEIGHT = 12
@@ -25,10 +30,15 @@ class pyBulletView:
         p.setGravity(0, 0, -10)
         
         # PyBullet view config
+        self.carX = p.addUserDebugParameter('Car X coordinate', -5, 5, 0)
+        self.carY = p.addUserDebugParameter('Car Y coordinate', -5, 5, 0)
+        self.carA = p.addUserDebugParameter('Car Direction', -pi, pi, 0)
         self.switchCamera = p.addUserDebugParameter('God view / Car camera', 1, 0, 1)
         self.takePic = p.addUserDebugParameter('Take Picture', 1, 0, 1)
-        self.angle = p.addUserDebugParameter('Steering', -0.5, 0.5, 0)
-        self.throttle = p.addUserDebugParameter('Throttle', 0, 20, 0)
+        self.angle = p.addUserDebugParameter('Steering', -MAX_STEERING, MAX_STEERING, 0)
+        self.throttle = p.addUserDebugParameter('Throttle', 0, MAX_THROTTLE, 0)
+        self.isSimulating = p.addUserDebugParameter('Enable / Disable simulation', 1, 0, 1)
+
         self.takePicClicked = p.readUserDebugParameter(self.takePic)
         
         # PyBullet load materials
@@ -56,11 +66,23 @@ class pyBulletView:
     def __del__(self):
         p.disconnect()
 
-    def motorControl(self, useParam, user_throttle, user_angle):
+    def carControl(self):
+        if p.readUserDebugParameter(self.isSimulating) % 2 == 0: return
+
+        carBasePosition = list(p.getBasePositionAndOrientation(self.car)[0])
+        carBaseOrientationEuler = list(p.getEulerFromQuaternion(p.getBasePositionAndOrientation(self.car)[1]))
+
+        carBasePosition[0] = p.readUserDebugParameter(self.carX)
+        carBasePosition[1] = p.readUserDebugParameter(self.carY)
+        carBaseOrientationEuler[2] = p.readUserDebugParameter(self.carA)
+
+        p.resetBasePositionAndOrientation(self.car, carBasePosition, p.getQuaternionFromEuler(carBaseOrientationEuler))
+
+    def motorControl(self, user_throttle, user_angle):
         for joint_index in self.wheel_indices:
-            p.setJointMotorControl2(self.car, joint_index, p.VELOCITY_CONTROL, targetVelocity=(p.readUserDebugParameter(self.throttle) if useParam else user_throttle))
+            p.setJointMotorControl2(self.car, joint_index, p.VELOCITY_CONTROL, targetVelocity=(p.readUserDebugParameter(self.throttle) if (p.readUserDebugParameter(self.isSimulating) % 2 == 0) else user_throttle))
         for joint_index in self.hinge_indices:
-            p.setJointMotorControl2(self.car, joint_index, p.POSITION_CONTROL, targetPosition=(p.readUserDebugParameter(self.angle) if useParam else -user_angle))
+            p.setJointMotorControl2(self.car, joint_index, p.POSITION_CONTROL, targetPosition=(-p.readUserDebugParameter(self.angle) if (p.readUserDebugParameter(self.isSimulating) % 2 == 0) else -user_angle))
 
     def cameraControl(self):
         carNumClicked = p.readUserDebugParameter(self.switchCamera)       
@@ -70,13 +92,13 @@ class pyBulletView:
             eulerOri = p.getEulerFromQuaternion(orientation)[2]
             p.resetDebugVisualizerCamera(cameraDistance=1.5, cameraYaw=(np.degrees(eulerOri - np.pi / 2)), cameraPitch=-25, cameraTargetPosition=(position[0] + np.cos(eulerOri), position[1] + np.sin(eulerOri), position[2]))
             
-            p.getCameraImage(128, 120)
+            p.getCameraImage(IMG_WIDTH, IMG_HEIGHT)
         else:
             p.resetDebugVisualizerCamera(cameraDistance=3, cameraYaw=50, cameraPitch=-25, cameraTargetPosition=(0, 0, 0))
 
     def pictureControl(self):
         if self.takePicClicked != p.readUserDebugParameter(self.takePic):
-            image = p.getCameraImage(128, 120)[2]
+            image = p.getCameraImage(IMG_WIDTH, IMG_HEIGHT)[2]
             grey = np.uint8(np.dot(image[...,:3], [0.2989, 0.5870, 0.1140]))
             im = Image.fromarray(grey, mode="L")
             # print(grey)
@@ -119,7 +141,8 @@ class pySCserver:
         print("-----Server ended with counter: " + str(self.__counter))
 
     def loop(self, delay=DEFAULT_FRAME_RATE):
-        self.pBV.motorControl(False, self.__motor_speed, self.__motor_turn)
+        self.pBV.carControl()
+        self.pBV.motorControl(self.__motor_speed, self.__motor_turn)
         self.pBV.cameraControl()
         self.pBV.pictureControl()
 
@@ -183,16 +206,16 @@ class pySCserver:
 
         if self.__recv_str[0] == 'F':
             if debugMode in [0, 2]: print("Move forward for speed of", parsedValue)
-            if debugMode in [1, 2]: self.__motor_speed = parsedValue * 20 / 16256
+            if debugMode in [1, 2]: self.__motor_speed = parsedValue * MAX_THROTTLE / 16256
         elif self.__recv_str[0] == 'B':
             if debugMode in [0, 2]: print("Move backward for speed of", parsedValue)
-            if debugMode in [1, 2]: self.__motor_speed = -parsedValue * 20 / 16256
+            if debugMode in [1, 2]: self.__motor_speed = -parsedValue * MAX_THROTTLE / 16256
         elif self.__recv_str[0] == 'L':
             if debugMode in [0, 2]: print("Turn left for degree of", parsedValue)
-            if debugMode in [1, 2]: self.__motor_turn = -parsedValue * 0.5 / 16256
+            if debugMode in [1, 2]: self.__motor_turn = -parsedValue * MAX_STEERING / 16256
         elif self.__recv_str[0] == 'R':
             if debugMode in [0, 2]: print("Turn right for degree of", parsedValue)
-            if debugMode in [1, 2]: self.__motor_turn = parsedValue * 0.5 / 16256
+            if debugMode in [1, 2]: self.__motor_turn = parsedValue * MAX_STEERING / 16256
         elif self.__recv_str == 'STP':
             if debugMode in [0, 2]: print("Stop moving")
             if debugMode in [1, 2]: self.__motor_speed = 0
