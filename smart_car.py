@@ -11,11 +11,10 @@ if __name__ == '__main__':
 
     while True:
         sc.receive(3)
-        # if not sc.getReceivedString():
-        #     break
 
         sc.parseCommand(2)
 
         sc.loop()
 
         sc.addCounter()
+        # print(sc.getCounter())

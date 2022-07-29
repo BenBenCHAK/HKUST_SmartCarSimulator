@@ -7,9 +7,12 @@ from PIL import Image
 from time import sleep
 
 import socket
+import select
 
 IMG_WIDTH = 128
 IMG_HEIGHT = 120
+
+DEFAULT_FRAME_RATE = 1./240.
 
 # IMG_WIDTH = 10
 # IMG_HEIGHT = 12
@@ -54,14 +57,10 @@ class pyBulletView:
         p.disconnect()
 
     def motorControl(self, useParam, user_throttle, user_angle):
-        if useParam == True:
-            user_throttle = p.readUserDebugParameter(self.throttle)
-            user_angle = p.readUserDebugParameter(self.angle)
-        
         for joint_index in self.wheel_indices:
-            p.setJointMotorControl2(self.car, joint_index, p.VELOCITY_CONTROL, targetVelocity=user_throttle)
+            p.setJointMotorControl2(self.car, joint_index, p.VELOCITY_CONTROL, targetVelocity=(p.readUserDebugParameter(self.throttle) if useParam else user_throttle))
         for joint_index in self.hinge_indices:
-            p.setJointMotorControl2(self.car, joint_index, p.POSITION_CONTROL, targetPosition=user_angle)
+            p.setJointMotorControl2(self.car, joint_index, p.POSITION_CONTROL, targetPosition=(p.readUserDebugParameter(self.angle) if useParam else -user_angle))
 
     def cameraControl(self):
         carNumClicked = p.readUserDebugParameter(self.switchCamera)       
@@ -87,7 +86,7 @@ class pyBulletView:
             
             self.takePicClicked = p.readUserDebugParameter(self.takePic)
 
-    def nextFrame(self, delay=1./240.):
+    def nextFrame(self, delay=DEFAULT_FRAME_RATE):
         p.stepSimulation()
         sleep(delay)
 
@@ -98,21 +97,25 @@ class pySCserver:
         self.__motor_speed = 0
         self.__motor_turn = 0
 
+        self.__recv_str = ""
+
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server.bind(("localhost", 8888))
-        print("-----Server started")
-        # self.server.setblocking(False)
+        self.server.setblocking(False)
         self.server.listen(1)
-        self.connection, self.address = self.server.accept()
-        # self.connection.setblocking(False)
+        self.inputs = [self.server]
+        print("-----Server started")
 
         self.__counter = 0
 
     def __del__(self):
-        self.connection.close()
-        input("-----Server ended with counter: " + str(self.__counter))
+        try:
+            self.connection.close()
+        except:
+            pass
+        print("-----Server ended with counter: " + str(self.__counter))
 
-    def loop(self, delay=1./240.):
+    def loop(self, delay=DEFAULT_FRAME_RATE):
         self.pBV.motorControl(False, self.__motor_speed, self.__motor_turn)
         self.pBV.cameraControl()
         self.pBV.pictureControl()
@@ -125,18 +128,33 @@ class pySCserver:
         return self.__counter
 
     def receive(self, num_bytes):
-        self.__recv_str = self.connection.recv(1024)[0:num_bytes].decode("ascii")
+        readable, _, _ = select.select(self.inputs, [], [], 0)
+
+        for sck in readable:
+            if sck is self.server:
+                self.connection, self.address = sck.accept()
+                self.connection.setblocking(False)
+                self.inputs.append(self.connection)
+            else:
+                self.__recv_str = sck.recv(1024)[0:num_bytes].decode("ascii")
+                sck.close()
+                self.inputs.remove(sck)
+
         # try:
         #     self.connection, self.address = self.server.accept()
-        #     self.connection.setblocking(False)
         #     self.__recv_str = self.connection.recv(1024)[0:num_bytes].decode("ascii")
+        #     self.connection.setblocking(False)
+        #     self.connection.close()
         # except:
         #     pass
     def getReceivedString(self):
         return self.__recv_str
 
     def send(self, data):
-        self.connection.sendall(data)
+        try:
+            self.connection.sendall(data)
+        except:
+            pass
         
     def parseCommand(self, debugMode=1):
         if not self.__recv_str:
@@ -154,13 +172,13 @@ class pySCserver:
             if debugMode in [1, 2]: self.__motor_speed = parsedValue * 20 / 16256
         elif self.__recv_str[0] == 'B':
             if debugMode in [0, 2]: print("Move backward for speed of", parsedValue)
-            if debugMode in [1, 2]: self.__motor_speed = -parsedValue * 20 / 16256.0
+            if debugMode in [1, 2]: self.__motor_speed = -parsedValue * 20 / 16256
         elif self.__recv_str[0] == 'L':
             if debugMode in [0, 2]: print("Turn left for degree of", parsedValue)
-            if debugMode in [1, 2]: self.__motor_turn = -parsedValue * 0.5 / 16256.0
+            if debugMode in [1, 2]: self.__motor_turn = -parsedValue * 0.5 / 16256
         elif self.__recv_str[0] == 'R':
             if debugMode in [0, 2]: print("Turn right for degree of", parsedValue)
-            if debugMode in [1, 2]: self.__motor_turn = parsedValue * 0.5 / 16256.0
+            if debugMode in [1, 2]: self.__motor_turn = parsedValue * 0.5 / 16256
         elif self.__recv_str == 'STP':
             if debugMode in [0, 2]: print("Stop moving")
             if debugMode in [1, 2]: self.__motor_speed = 0
