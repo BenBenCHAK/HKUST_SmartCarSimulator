@@ -100,6 +100,7 @@ class pySCserver:
         self.__recv_str = ""
 
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.server.bind(("localhost", 8888))
         self.server.setblocking(False)
         self.server.listen(1)
@@ -130,6 +131,7 @@ class pySCserver:
     def receive(self, num_bytes):
         readable, _, _ = select.select(self.inputs, [], [], 0)
 
+        print(len(self.inputs), len(readable))
         for sck in readable:
             if sck is self.server:
                 self.connection, self.address = sck.accept()
@@ -192,6 +194,9 @@ class pySCserver:
             if debugMode in [1, 2]: self.send(imgEncode(img_matrix, IMG_WIDTH, IMG_HEIGHT))
         else:
             print("Unknown command")
+
+        if (self.__recv_str[0] in ['F', 'B', 'L', 'R', 'S']) or self.__recv_str == 'GET' and debugMode == 0:
+            self.send("X")
 
 def generateZeros(img_width, img_height):
     return np.zeros((img_width, img_height), dtype=np.uint8)
