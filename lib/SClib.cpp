@@ -78,6 +78,9 @@ void serverSmartCar::getImg2D() {
 		}
 	}
 }
+uint8_t serverSmartCar::getPixel(int x, int y) {
+	return img_matrix[y][x];
+}
 void serverSmartCar::printImg() {
 	for (int y = 0; y < IMG_HEIGHT; y++) {
 		for (int x = 0; x < IMG_WIDTH; x++)

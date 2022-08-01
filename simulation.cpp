@@ -48,14 +48,39 @@ void simpleControl(serverSmartCar &sc) {
     sc.motorTurn(0);
 }
 
+void imageControl(serverSmartCar &sc) {
+    sc.getImg2D();
+
+    int leftW = 0, rightW = 0;
+    
+    for (int y = 60; y < 120; y++) {
+        for (int x = 0; x < 64; x++) {
+            if (sc.getPixel(x, y) > 200)
+                leftW++;
+        }
+        for (int x = 64; x < 128; x++) {
+            if (sc.getPixel(x, y) > 200)
+                rightW++;
+        }
+    }
+
+    sc.motorTurn((rightW - leftW) * 150);
+    sc.motorSpeed(10000);
+
+    // Check if certain pixel is correct
+    // printf("%d\n", sc.getPixel(127, 119));
+}
+
 int main() {
     serverSmartCar server;
     server.connectServer();
 
     // debugControl(server);
-    simpleControl(server);
-
-
+    // simpleControl(server);
+    while (true) {
+        imageControl(server);
+        Sleep(100);
+    }
 
     return 0;
 }

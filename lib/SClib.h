@@ -26,6 +26,7 @@ class serverSmartCar {
 
         void getImg1D(char *pixels);
         void getImg2D();
+        uint8_t getPixel(int x, int y);
         void printImg();
 
     private:

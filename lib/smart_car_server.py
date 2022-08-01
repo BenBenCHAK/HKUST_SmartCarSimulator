@@ -9,12 +9,12 @@ from time import sleep
 import socket
 import select
 
-from math import pi
-
 IMG_WIDTH = 128
 IMG_HEIGHT = 120
 
 DEFAULT_FRAME_RATE = 1./240.
+
+A_G = -9.81
 
 MAX_THROTTLE = 50 #20
 MAX_STEERING = 1 #0.5
@@ -27,32 +27,34 @@ class pyBulletView:
         # Basic pyBullet config
         p.connect(p.GUI)
         p.setAdditionalSearchPath(pybullet_data.getDataPath())
-        p.setGravity(0, 0, -10)
+        p.setGravity(0, 0, A_G)
         
         # PyBullet view config
         self.carX = p.addUserDebugParameter('Car X coordinate', -5, 5, 0)
         self.carY = p.addUserDebugParameter('Car Y coordinate', -5, 5, 0)
-        self.carA = p.addUserDebugParameter('Car Direction', -pi, pi, 0)
+        self.carA = p.addUserDebugParameter('Car Direction', -np.pi, np.pi, 0)
+        self.steering = p.addUserDebugParameter('Steering', -MAX_STEERING, MAX_STEERING, 0)
+        self.throttle = p.addUserDebugParameter('Throttle', 0, MAX_THROTTLE, 0)
+
+        self.cameraHeight = p.addUserDebugParameter('Car Camera Height', 0.1, 0.25, 0.1)
+        self.cameraAngle = p.addUserDebugParameter('Car Camera Angle', -1, 1, 0)
         self.switchCamera = p.addUserDebugParameter('God view / Car camera', 1, 0, 1)
         self.takePic = p.addUserDebugParameter('Take Picture', 1, 0, 1)
-        self.angle = p.addUserDebugParameter('Steering', -MAX_STEERING, MAX_STEERING, 0)
-        self.throttle = p.addUserDebugParameter('Throttle', 0, MAX_THROTTLE, 0)
+
         self.isSimulating = p.addUserDebugParameter('Enable / Disable simulation', 1, 0, 1)
 
         self.takePicClicked = p.readUserDebugParameter(self.takePic)
+        self.carImage = p.getCameraImage(IMG_WIDTH, IMG_HEIGHT)[2]
         
         # PyBullet load materials
         self.car = p.loadURDF('/src/simplecar.urdf', [0, 0, 0.1], globalScaling=0.5)
         self.plane = p.loadURDF('/src/simpleplane.urdf')
         self.trackId = p.createVisualShape(p.GEOM_MESH, fileName="/src/track.obj", meshScale=[1]*3, rgbaColor=[1]*3+[1])
         p.createMultiBody(0, baseVisualShapeIndex=self.trackId, basePosition=[-4, -4, -0.08])
-        # self.baseId = p.loadURDF("/src/track.urdf", [0, 0, 0], useFixedBase=1, globalScaling=0.1)
-        # self.baseTextureId = p.loadTexture("/src/track_smaller.png")
-        # p.changeVisualShape(self.baseId, -1, textureUniqueId=self.baseTextureId)
 
         self.wheel_indices = [1, 3, 4, 5]
         self.hinge_indices = [0, 2]
-        
+        self.camera_indices = [6, 7, 8]
         # number_of_joints = p.getNumJoints(self.car)
         # for joint_number in range(number_of_joints):
         #     info = p.getJointInfo(self.car, joint_number)
@@ -78,32 +80,46 @@ class pyBulletView:
 
         p.resetBasePositionAndOrientation(self.car, carBasePosition, p.getQuaternionFromEuler(carBaseOrientationEuler))
 
-    def motorControl(self, user_throttle, user_angle):
+    def motorControl(self, user_throttle, user_steering):
         for joint_index in self.wheel_indices:
             p.setJointMotorControl2(self.car, joint_index, p.VELOCITY_CONTROL, targetVelocity=(p.readUserDebugParameter(self.throttle) if (p.readUserDebugParameter(self.isSimulating) % 2 == 0) else user_throttle))
         for joint_index in self.hinge_indices:
-            p.setJointMotorControl2(self.car, joint_index, p.POSITION_CONTROL, targetPosition=(-p.readUserDebugParameter(self.angle) if (p.readUserDebugParameter(self.isSimulating) % 2 == 0) else -user_angle))
+            p.setJointMotorControl2(self.car, joint_index, p.POSITION_CONTROL, targetPosition=(-p.readUserDebugParameter(self.steering) if (p.readUserDebugParameter(self.isSimulating) % 2 == 0) else -user_steering))
 
     def cameraControl(self):
-        carNumClicked = p.readUserDebugParameter(self.switchCamera)       
+        carNumClicked = p.readUserDebugParameter(self.switchCamera)
         position, orientation = p.getBasePositionAndOrientation(self.car)
+        x, y, z = p.getDebugVisualizerCamera()[5]
 
         if carNumClicked % 2 == 0:
+            roll, pitch, yaw = p.getEulerFromQuaternion(orientation)
             eulerOri = p.getEulerFromQuaternion(orientation)[2]
-            p.resetDebugVisualizerCamera(cameraDistance=1.5, cameraYaw=(np.degrees(eulerOri - np.pi / 2)), cameraPitch=-25, cameraTargetPosition=(position[0] + np.cos(eulerOri), position[1] + np.sin(eulerOri), position[2]))
+            camDist = 0.75
+            camAngle = p.readUserDebugParameter(self.cameraAngle)
+            p.resetDebugVisualizerCamera(cameraDistance=camDist,
+                                        cameraYaw=np.degrees(yaw - np.pi / 2),
+                                        cameraPitch=-p.readUserDebugParameter(self.cameraAngle)*180/np.pi,
+                                        cameraTargetPosition=(position[0] + np.cos(yaw) * (1 - camDist * (1 - np.cos(camAngle))),
+                                                            position[1] + np.sin(yaw) * (1 - camDist * (1 - np.sin(camAngle))),
+                                                            position[2] + p.readUserDebugParameter(self.cameraHeight) - camDist * np.sin(camAngle)))
             
-            p.getCameraImage(IMG_WIDTH, IMG_HEIGHT)
+            # Correctly variable camera height but buggily variable camera angle
+            # p.resetDebugVisualizerCamera(cameraDistance=camDist, cameraYaw=(np.degrees(eulerOri - np.pi / 2)), cameraPitch=-p.readUserDebugParameter(self.cameraAngle)*180/np.pi, cameraTargetPosition=(position[0] + np.cos(eulerOri) * (1 - camDist * (1 - np.cos(camAngle))), position[1] + np.sin(eulerOri) * (1 - camDist * (1 - np.sin(camAngle))), position[2] + p.readUserDebugParameter(self.cameraHeight) - camDist * np.sin(camAngle)))
+            
+            # Fixed camera height and angle
+            # p.resetDebugVisualizerCamera(cameraDistance=1.5, cameraYaw=(np.degrees(eulerOri - np.pi / 2)), cameraPitch=-25, cameraTargetPosition=(position[0] + np.cos(eulerOri), position[1] + np.sin(eulerOri), position[2]))
+            
+            self.carImage = p.getCameraImage(IMG_WIDTH, IMG_HEIGHT)[2]
         else:
-            p.resetDebugVisualizerCamera(cameraDistance=3, cameraYaw=50, cameraPitch=-25, cameraTargetPosition=(0, 0, 0))
+            # p.resetDebugVisualizerCamera(cameraDistance=3, cameraYaw=50, cameraPitch=-25, cameraTargetPosition=(0, 0, 0))
+            pass
 
     def pictureControl(self):
         if self.takePicClicked != p.readUserDebugParameter(self.takePic):
-            image = p.getCameraImage(IMG_WIDTH, IMG_HEIGHT)[2]
-            grey = np.uint8(np.dot(image[...,:3], [0.2989, 0.5870, 0.1140]))
+            grey = np.uint8(np.dot(self.carImage[...,:3], [0.2989, 0.5870, 0.1140]))
             im = Image.fromarray(grey, mode="L")
-            # print(grey)
-            
             # im = Image.fromarray(image, mode="RGBA").convert("L")
+            
             im.save("capture.png")
             
             self.takePicClicked = p.readUserDebugParameter(self.takePic)

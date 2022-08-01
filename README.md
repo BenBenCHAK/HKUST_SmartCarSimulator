@@ -50,8 +50,7 @@ pip install Pillow
 ├── src
 │   ├── simplecar.urdf
 │   ├── simpleplane.urdf
-│   ├── track.urdf
-│   └── track_smaller.png
+│   └── track.obj
 ├── SDL2.dll
 ├── makefile
 ├── simulation.cpp
@@ -65,7 +64,7 @@ The "lib" directory contains both C++ and Python libraries for the client side t
 
 The "src" directory contains 3D materials and textures for the car simulation. To run the server, just run "smart_car.py", which includes the module "smart_car_server.py" inside.
 
-In the root directory, "simulation.cpp" is a **quickstart** demo code for the library's usage. The "simulation_gui.cpp" is a tester C++ source code for testing if the images are correctly received, with the aid of the SDL2 library. As for the "makefile", it is a reference for you to compile the C++ codes into executables.
+In the root directory, "simulation.cpp" is a **quickstart** demo code for the library's usage. The "simulation_gui.cpp" is an optional tester code for testing if the images are correctly received, with the aid of the SDL2 library. As for the "makefile", it is a reference for you to compile the C++ source codes into executables.
 
 ### Starting both the server and client simultaneously
 
@@ -83,10 +82,10 @@ make
 > Hint: If you cannot "make", then just manually compile the C++ code. Refer to the makefile.
 
 ## To-do list
-1. Multi threading applied
-2. Client real time control
-3. Sending camera image to client with speed
-4. Use [protocalbuffers](https://github.com/protocolbuffers/protobuf) to serialize the image data for sending and receiving
+1. Use [protocalbuffers](https://github.com/protocolbuffers/protobuf) to serialize the image data for sending and receiving
+2. Multiple cameras and light sources
+3. Flexible cars and tracks control
+4. 
 
 <!-- ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. -->
