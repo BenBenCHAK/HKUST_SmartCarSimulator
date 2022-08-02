@@ -38,10 +38,32 @@ int serverSmartCar::connectServer(const char* ip = "127.0.0.1", const int port =
 	return 0;
 }
 
-void serverSmartCar::getImg() {
+void serverSmartCar::getImg1D(char *pixels) {
+	if (hasErr) return;
+
 	const int NUM_PIXEL_ENCODED = IMG_WIDTH * IMG_HEIGHT * 2;
 
+	std::string temp = "GET";
+    char const *baseCh = temp.c_str();
+	send(sockClient, baseCh, strlen(baseCh), 0);
+
+	char recvBuf[NUM_PIXEL_ENCODED];
+	recv(sockClient, recvBuf, NUM_PIXEL_ENCODED, 0);
+	for (int i = 0; i < NUM_PIXEL_ENCODED; i += 2) {
+		pixels[(i/2)*3] = recvBuf[i + 1];
+		pixels[(i/2)*3 + 1] = recvBuf[i + 1];
+		pixels[(i/2)*3 + 2] = recvBuf[i + 1];
+		if (recvBuf[i] != 0) {
+			pixels[(i/2)*3] += 128;
+			pixels[(i/2)*3 + 1] += 128;
+			pixels[(i/2)*3 + 2] += 128;
+		}
+	}
+}
+void serverSmartCar::getImg2D() {
 	if (hasErr) return;
+
+	const int NUM_PIXEL_ENCODED = IMG_WIDTH * IMG_HEIGHT * 2;
 
 	std::string temp = "GET";
     char const *baseCh = temp.c_str();
@@ -56,13 +78,15 @@ void serverSmartCar::getImg() {
 		}
 	}
 }
+uint8_t serverSmartCar::getPixel(int x, int y) {
+	return img_matrix[y][x];
+}
 void serverSmartCar::printImg() {
 	for (int y = 0; y < IMG_HEIGHT; y++) {
 		for (int x = 0; x < IMG_WIDTH; x++)
 			printf("%4d ", img_matrix[y][x]);
 		printf("\n");
 	}
-		
 }
 
 void serverSmartCar::motorSpeed(int speed = 0) {
@@ -83,7 +107,8 @@ void serverSmartCar::motorSpeed(int speed = 0) {
     char const *baseCh = temp.c_str();
 	send(sockClient, baseCh, strlen(baseCh), 0);
 
-	Sleep(150);
+	char recvBuf[1];
+	recv(sockClient, recvBuf, 1, 0);
 }
 void serverSmartCar::motorTurn(int angle = 0) {
 	if (hasErr) return;
@@ -103,5 +128,6 @@ void serverSmartCar::motorTurn(int angle = 0) {
     char const *baseCh = temp.c_str();
 	send(sockClient, baseCh, strlen(baseCh), 0);
 
-	Sleep(100);
+	char recvBuf[1];
+	recv(sockClient, recvBuf, 1, 0);
 }

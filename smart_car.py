@@ -1,21 +1,21 @@
 import lib.smart_car_server as scs
+# import lib.SClib as pyb
 
 import numpy as np
 import pybullet as p
 from PIL import Image
-from time import sleep
 import pybullet_data
 
 if __name__ == '__main__':
     sc = scs.pySCserver()
 
     while True:
-        sc.addCounter()
-
         sc.receive(3)
-        if not sc.getReceivedString():
-            break
 
-        sc.parseCommand(3)
+        # 0 for debug message, 1 for real control and 2 for both
+        sc.parseCommand(1)
 
-        sleep(0.1)
+        sc.loop()
+
+        sc.addCounter()
+        # print(sc.getCounter())

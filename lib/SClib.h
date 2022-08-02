@@ -24,7 +24,9 @@ class serverSmartCar {
         void motorSpeed(int speed);
         void motorTurn(int angle);
 
-        void getImg();
+        void getImg1D(char *pixels);
+        void getImg2D();
+        uint8_t getPixel(int x, int y);
         void printImg();
 
     private:
