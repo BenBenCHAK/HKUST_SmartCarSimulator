@@ -65,7 +65,7 @@ void imageControl(serverSmartCar &sc) {
     }
 
     sc.motorTurn((rightW - leftW) * 150);
-    sc.motorSpeed(13000);
+    sc.motorSpeed(10000);
 
     // Check if certain pixel is correct
     // printf("%d\n", sc.getPixel(127, 119));

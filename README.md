@@ -32,7 +32,7 @@ Install them if you have not installed before.
 pip install pybullet
 pip install numpy
 pip install sockets
-pip install Pillow
+pip install pillow
 ```
 
 ## Usage
@@ -89,9 +89,10 @@ make
 > Hint: If you cannot "make", then just manually compile the C++ code. Refer to the makefile.
 
 ## To-do list 
-- Multiple cameras and light sources
-- Flexible cars and tracks control
+- Flexible cars and tracks control, i.e. markings on the track, really moving camera
 - Code refactoring and beautifying
+- Multiple cameras and light sources
+- Gradual change of motor speed
 
 <!-- ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. -->

@@ -1,7 +1,7 @@
 import numpy as np
 
 import pybullet as p
-import pybullet_data
+# import pybullet_data
 
 from PIL import Image
 from time import sleep
@@ -9,8 +9,8 @@ from time import sleep
 import socket
 import select
 
-IMG_WIDTH = 128
-IMG_HEIGHT = 120
+IMG_WIDTH = 128 #10
+IMG_HEIGHT = 120 #12
 
 DEFAULT_FRAME_RATE = 1./240.
 
@@ -19,14 +19,11 @@ A_G = -9.81
 MAX_THROTTLE = 50 #20
 MAX_STEERING = 1 #0.5
 
-# IMG_WIDTH = 10
-# IMG_HEIGHT = 12
-
 class pyBulletView:
     def __init__(self):
         # Basic pyBullet config
         p.connect(p.GUI)
-        p.setAdditionalSearchPath(pybullet_data.getDataPath())
+        # p.setAdditionalSearchPath(pybullet_data.getDataPath())
         p.setGravity(0, 0, A_G)
         
         # PyBullet view config
@@ -119,6 +116,17 @@ class pyBulletView:
             
             self.takePicClicked = p.readUserDebugParameter(self.takePic)
 
+    def leaveMarking(self, markFrom):
+        LFmarkTo, RFmarkTo, LBmarkTo, RBmarkTo = p.getLinkStates(self.car, self.wheel_indices)
+        p.addUserDebugLine(markFrom[0], LFmarkTo[0], [0, 1, 0], 1, 0)
+        p.addUserDebugLine(markFrom[1], RFmarkTo[0], [0, 1, 0], 1, 0)
+        p.addUserDebugLine(markFrom[2], LBmarkTo[0], [1, 0, 0], 1, 0)
+        p.addUserDebugLine(markFrom[3], RBmarkTo[0], [1, 0, 0], 1, 0)
+        markFrom[0] = LFmarkTo[0]
+        markFrom[1] = RFmarkTo[0]
+        markFrom[2] = LBmarkTo[0]
+        markFrom[3] = RBmarkTo[0]
+
     def nextFrame(self, delay=DEFAULT_FRAME_RATE):
         p.stepSimulation()
         sleep(delay)
@@ -127,10 +135,12 @@ class pySCserver:
     def __init__(self):
         self.pBV = pyBulletView()
 
+        self.__recv_str = ""
+
         self.__motor_speed = 0
         self.__motor_turn = 0
 
-        self.__recv_str = ""
+        self.__markFrom = [[0, 0, 0]]*4
 
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -156,6 +166,9 @@ class pySCserver:
         self.pBV.motorControl(self.__motor_speed, self.__motor_turn)
         self.pBV.cameraControl()
         self.pBV.pictureControl()
+
+        if self.__counter % 50 == 0:
+            self.pBV.leaveMarking(self.__markFrom)
 
         self.pBV.nextFrame(delay)
 
