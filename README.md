@@ -88,11 +88,10 @@ make
 
 > Hint: If you cannot "make", then just manually compile the C++ code. Refer to the makefile.
 
-## To-do list
-1. Use [protocalbuffers](https://github.com/protocolbuffers/protobuf) to serialize the image data for sending and receiving
-2. Multiple cameras and light sources
-3. Flexible cars and tracks control
-4. 
+## To-do list 
+- Multiple cameras and light sources
+- Flexible cars and tracks control
+- Code refactoring and beautifying
 
 <!-- ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. -->

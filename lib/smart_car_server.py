@@ -37,7 +37,7 @@ class pyBulletView:
         self.throttle = p.addUserDebugParameter('Throttle', 0, MAX_THROTTLE, 0)
 
         self.cameraHeight = p.addUserDebugParameter('Car Camera Height', 0.1, 0.25, 0.25)
-        self.cameraOffset = p.addUserDebugParameter('Car Camera Offset', 0.8, 1.2, 0.9)
+        self.cameraOffset = p.addUserDebugParameter('Car Camera Offset', 0.8, 1.2, 0.85)
         self.cameraAngle = p.addUserDebugParameter('Car Camera Angle', -1, 1, 0.5)
         self.switchCamera = p.addUserDebugParameter('God view / Car camera', 1, 0, 1)
         self.takePic = p.addUserDebugParameter('Take Picture', 1, 0, 1)
@@ -94,7 +94,7 @@ class pyBulletView:
         position, orientation = p.getBasePositionAndOrientation(self.car)
 
         if carNumClicked % 2 == 0:
-            yaw = p.getEulerFromQuaternion(orientation)[2]
+            _, _, yaw = p.getEulerFromQuaternion(orientation)
             camDist = p.readUserDebugParameter(self.cameraOffset)
             camAngle = p.readUserDebugParameter(self.cameraAngle)
             p.resetDebugVisualizerCamera(cameraDistance=camDist,
@@ -103,9 +103,6 @@ class pyBulletView:
                                         cameraTargetPosition=(position[0] + np.cos(yaw) * (1 - camDist * (1 - np.cos(camAngle))),
                                                             position[1] + np.sin(yaw) * (1 - camDist * (1 - np.cos(camAngle))),
                                                             position[2] + p.readUserDebugParameter(self.cameraHeight) - camDist * np.sin(camAngle)))
-            
-            # Fixed camera height and angle
-            # p.resetDebugVisualizerCamera(cameraDistance=1.5, cameraYaw=(np.degrees(eulerOri - np.pi / 2)), cameraPitch=-25, cameraTargetPosition=(position[0] + np.cos(eulerOri), position[1] + np.sin(eulerOri), position[2]))
             
             self.carImage = p.getCameraImage(IMG_WIDTH, IMG_HEIGHT)[2]
         else:
