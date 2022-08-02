@@ -79,7 +79,7 @@ int main() {
     // simpleControl(server);
     while (true) {
         imageControl(server);
-        Sleep(100);
+        Sleep(0.01);
     }
 
     return 0;

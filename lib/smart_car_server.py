@@ -36,9 +36,9 @@ class pyBulletView:
         self.steering = p.addUserDebugParameter('Steering', -MAX_STEERING, MAX_STEERING, 0)
         self.throttle = p.addUserDebugParameter('Throttle', 0, MAX_THROTTLE, 0)
 
-        self.cameraHeight = p.addUserDebugParameter('Car Camera Height', 0.1, 0.25, 0.1)
-        self.cameraOffset = p.addUserDebugParameter('Car Camera Offset', 0.8, 1.2, 1)
-        self.cameraAngle = p.addUserDebugParameter('Car Camera Angle', -1, 1, 0)
+        self.cameraHeight = p.addUserDebugParameter('Car Camera Height', 0.1, 0.25, 0.25)
+        self.cameraOffset = p.addUserDebugParameter('Car Camera Offset', 0.8, 1.2, 0.9)
+        self.cameraAngle = p.addUserDebugParameter('Car Camera Angle', -1, 1, 0.5)
         self.switchCamera = p.addUserDebugParameter('God view / Car camera', 1, 0, 1)
         self.takePic = p.addUserDebugParameter('Take Picture', 1, 0, 1)
 
@@ -176,7 +176,7 @@ class pySCserver:
                 self.connection.setblocking(False)
                 self.inputs.append(self.connection)
             else:
-                self.__recv_str = s.recv(1024)[0:num_bytes].decode("ascii")
+                self.__recv_str = s.recv(num_bytes).decode("ascii")
                 if self.__recv_str:
                     if s not in self.outputs:
                         self.outputs.append(s)
@@ -265,17 +265,5 @@ def generateGradient(img_width, img_height):
     return img
 
 def imgEncode(img_matrix, img_width, img_height):
-    temp_string = ""
     img_serial = img_matrix.reshape(img_width * img_height)
-
-    for pixel in img_serial:
-        if pixel >= 0 and pixel < 128:
-            temp_string += chr(0)
-            temp_string += chr(pixel)
-        elif pixel >= 128 and pixel < 256:
-            temp_string += chr(127)
-            temp_string += chr(pixel - 128)
-
-    return bytes(temp_string, encoding="ascii")
-
-    # return bytes("".join(chr(0) + chr(pixel) if pixel >= 0 and pixel < 128 else chr(127) + chr(pixel - 128) for pixel in img_serial), encoding="ascii")
+    return bytes(img_serial)
