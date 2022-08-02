@@ -21,7 +21,7 @@ Clone this project with Git into your local machine or just directly download ZI
 git clone https://github.com/BenBenCHAK/HKUST_SmartCarSimulator.git
 ```
 
-Install [PyBullet](https://pybullet.org/wordpress/) for hosting 3D simulation server. Some other essential packages used are:
+Install [PyBullet](https://pybullet.org/wordpress/) for hosting the 3D simulation server. Some other essential packages used are:
 - [NumPy](https://numpy.org/install/) for providing an array storage of image
 - [Sockets](https://pypi.org/project/sockets/) for client-server communication
 - [PIL](https://pypi.org/project/Pillow/) for simple imaging purposes.
@@ -51,6 +51,7 @@ pip install Pillow
 │   ├── simplecar.urdf
 │   ├── simpleplane.urdf
 │   └── track.obj
+├── .gitignore
 ├── SDL2.dll
 ├── makefile
 ├── simulation.cpp
@@ -60,11 +61,17 @@ pip install Pillow
 └── smart_car.py
 ```
 
-The "lib" directory contains both C++ and Python libraries for the client side to get the image from the car in the server side and control the car as needed.
+The "lib" directory contains both external C++ and Python libraries for the client side to get the image from the car in the server side and control the car as needed.
 
-The "src" directory contains 3D materials and textures for the car simulation. To run the server, just run "smart_car.py", which includes the module "smart_car_server.py" inside.
+The "src" directory contains 3D materials and textures for the car simulation.
 
-In the root directory, "simulation.cpp" is a **quickstart** demo code for the library's usage. The "simulation_gui.cpp" is an optional tester code for testing if the images are correctly received, with the aid of the SDL2 library. As for the "makefile", it is a reference for you to compile the C++ source codes into executables.
+In the root directory:
+- "smart_car.py" is the server file that you need to start for simulation;
+- "simulation.cpp" is a **quickstart** demo code for the library's usage, so feel free to **modify**;
+- "simulation_gui.cpp" is an optional tester code for testing if the images are correctly received, with the aid of the SDL2 library;
+- "makefile" helps you compile the C++ source codes into executables, so **modify** it if you need;
+- "SDL2.dll" is an essential DLL file for the SDL library;
+- ".gitignore" is a file to tell git to ignore certain files / directories.
 
 ### Starting both the server and client simultaneously
 
@@ -91,7 +98,7 @@ make
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. -->
 
 ## Authors and acknowledgment
-Contact me at <whchak@connect.ust.hk> or find me directly if you find any bugs.
+Contact me at <whchak@connect.ust.hk> or find me directly if you find any bugs or need any aids.
 
 <!-- 
 ## License
