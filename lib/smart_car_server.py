@@ -37,6 +37,7 @@ class pyBulletView:
         self.throttle = p.addUserDebugParameter('Throttle', 0, MAX_THROTTLE, 0)
 
         self.cameraHeight = p.addUserDebugParameter('Car Camera Height', 0.1, 0.25, 0.1)
+        self.cameraOffset = p.addUserDebugParameter('Car Camera Offset', 0.8, 1.2, 1)
         self.cameraAngle = p.addUserDebugParameter('Car Camera Angle', -1, 1, 0)
         self.switchCamera = p.addUserDebugParameter('God view / Car camera', 1, 0, 1)
         self.takePic = p.addUserDebugParameter('Take Picture', 1, 0, 1)
@@ -81,30 +82,27 @@ class pyBulletView:
         p.resetBasePositionAndOrientation(self.car, carBasePosition, p.getQuaternionFromEuler(carBaseOrientationEuler))
 
     def motorControl(self, user_throttle, user_steering):
+        # receiving == 1 means getting command and drive but 0 means manual control in debugging
+        receiving = 1
         for joint_index in self.wheel_indices:
-            p.setJointMotorControl2(self.car, joint_index, p.VELOCITY_CONTROL, targetVelocity=(p.readUserDebugParameter(self.throttle) if (p.readUserDebugParameter(self.isSimulating) % 2 == 0) else user_throttle))
+            p.setJointMotorControl2(self.car, joint_index, p.VELOCITY_CONTROL, targetVelocity=(p.readUserDebugParameter(self.throttle) if (p.readUserDebugParameter(self.isSimulating) % 2 == receiving) else user_throttle))
         for joint_index in self.hinge_indices:
-            p.setJointMotorControl2(self.car, joint_index, p.POSITION_CONTROL, targetPosition=(-p.readUserDebugParameter(self.steering) if (p.readUserDebugParameter(self.isSimulating) % 2 == 0) else -user_steering))
+            p.setJointMotorControl2(self.car, joint_index, p.POSITION_CONTROL, targetPosition=(-p.readUserDebugParameter(self.steering) if (p.readUserDebugParameter(self.isSimulating) % 2 == receiving) else -user_steering))
 
     def cameraControl(self):
         carNumClicked = p.readUserDebugParameter(self.switchCamera)
         position, orientation = p.getBasePositionAndOrientation(self.car)
-        x, y, z = p.getDebugVisualizerCamera()[5]
 
         if carNumClicked % 2 == 0:
-            roll, pitch, yaw = p.getEulerFromQuaternion(orientation)
-            eulerOri = p.getEulerFromQuaternion(orientation)[2]
-            camDist = 0.75
+            yaw = p.getEulerFromQuaternion(orientation)[2]
+            camDist = p.readUserDebugParameter(self.cameraOffset)
             camAngle = p.readUserDebugParameter(self.cameraAngle)
             p.resetDebugVisualizerCamera(cameraDistance=camDist,
                                         cameraYaw=np.degrees(yaw - np.pi / 2),
-                                        cameraPitch=-p.readUserDebugParameter(self.cameraAngle)*180/np.pi,
+                                        cameraPitch=-camAngle*180/np.pi,
                                         cameraTargetPosition=(position[0] + np.cos(yaw) * (1 - camDist * (1 - np.cos(camAngle))),
-                                                            position[1] + np.sin(yaw) * (1 - camDist * (1 - np.sin(camAngle))),
+                                                            position[1] + np.sin(yaw) * (1 - camDist * (1 - np.cos(camAngle))),
                                                             position[2] + p.readUserDebugParameter(self.cameraHeight) - camDist * np.sin(camAngle)))
-            
-            # Correctly variable camera height but buggily variable camera angle
-            # p.resetDebugVisualizerCamera(cameraDistance=camDist, cameraYaw=(np.degrees(eulerOri - np.pi / 2)), cameraPitch=-p.readUserDebugParameter(self.cameraAngle)*180/np.pi, cameraTargetPosition=(position[0] + np.cos(eulerOri) * (1 - camDist * (1 - np.cos(camAngle))), position[1] + np.sin(eulerOri) * (1 - camDist * (1 - np.sin(camAngle))), position[2] + p.readUserDebugParameter(self.cameraHeight) - camDist * np.sin(camAngle)))
             
             # Fixed camera height and angle
             # p.resetDebugVisualizerCamera(cameraDistance=1.5, cameraYaw=(np.degrees(eulerOri - np.pi / 2)), cameraPitch=-25, cameraTargetPosition=(position[0] + np.cos(eulerOri), position[1] + np.sin(eulerOri), position[2]))
