@@ -154,7 +154,7 @@ class pyBulletView:
                 z + p.readUserDebugParameter(self.cameraHeight) - cameraDistance * np.sin(camAngle)
             )
                        
-            _, _, self.carImage = p.getCameraImage(IMG_WIDTH, IMG_HEIGHT)
+            self.carImage = p.getCameraImage(IMG_WIDTH, IMG_HEIGHT)[2]
         else:
             # if (self.__isMouseRightPressed and self.__isMouseMoving):
             #     print(self.__movingMouseX - self.__stayingMouseX, self.__movingMouseY - self.__stayingMouseY)
@@ -214,7 +214,7 @@ class pySCserver:
         self.__motor_speed = 0
         self.__motor_turn = 0
 
-        self.__markFrom = [[0, 0, 0]]*4
+        self.__markFrom = [[0]*3]*4
 
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

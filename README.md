@@ -88,13 +88,29 @@ make
 
 > Hint: If you cannot "make", then just manually compile the C++ code. Refer to the makefile.
 
+### PyBullet server usage
+
+The GUI provided looks like this:
+
+![PyBullet GUI](readme_img/pybullet_gui.png)
+
+> You can manually adjust your view in God Mode. To move around, press the arrow keys. To look around, hold any CTRL key and the left mouse button. To zoom in or out, scroll the mouse wheel or hold any CTRL key and the right mouse button.
+
+### Right-side Params Panel usage
+
+You can easily adjust the parameters for the simulation.
+
+![Sample photo](readme_img/simple_demo.png)
+
 ## To-do list 
-- Flexible cars and tracks control
-i.e. markings on the track, input control + god view navigation, really moving car camera, camera projection view (i.e. fish eye stuff), debug param panel view mode changing
-car mass distribution, friction, size matching units
-- Code refactoring and beautifying
-- Multiple cameras and light sources
-- Gradual change of motor speed
+- markings on the track
+- really moving car camera
+- camera projection view (i.e. fish eye stuff)
+- debug param panel view mode changing
+- car mass distribution, friction, size matching units
+- gradual change of motor speed
+- noise
+- **code refactoring and beautifying**
 
 <!-- ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. -->
