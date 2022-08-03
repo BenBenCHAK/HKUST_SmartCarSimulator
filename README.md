@@ -103,9 +103,9 @@ You can easily adjust the parameters for the simulation.
 ![Sample photo](readme_img/simple_demo.png)
 
 ## To-do list 
-- really moving car camera
 - debug param panel view mode changing
 - camera projection view (i.e. fish eye stuff)
+- really moving car camera
 - car mass distribution, friction, size matching units
 - gradual change of motor speed
 - noise

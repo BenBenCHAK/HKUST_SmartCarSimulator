@@ -229,7 +229,7 @@
         <child link="camera_mount_link"/>
         <axis xyz="0 0 1"/>
         <origin xyz="0 0 0"/>
-        <limit lower="-0.1" upper="0.5"/>
+        <limit lower="0.1" upper="0.25"/>
     </joint>
 
     <!-- Camera of Car -->
