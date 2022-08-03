@@ -25,6 +25,9 @@ class pyBulletView:
         p.connect(p.GUI)
         # p.setAdditionalSearchPath(pybullet_data.getDataPath())
         p.setGravity(0, 0, A_G)
+
+        # View Mode: 0 = God mode; 1 = Client mode
+        # self.viewMode = 0
         
         # PyBullet view config
         self.carX = p.addUserDebugParameter('Car X coordinate', -5, 5, 0)
@@ -43,6 +46,26 @@ class pyBulletView:
 
         self.takePicClicked = p.readUserDebugParameter(self.takePic)
         self.carImage = p.getCameraImage(IMG_WIDTH, IMG_HEIGHT)[2]
+
+        # User input device data
+        self.__isKeyLeftPressed = False
+        self.__isKeyUpPressed = False
+        self.__isKeyRightPressed = False
+        self.__isKeyDownPressed = False
+
+        # self.__isMouseMoving = False
+        # self.__isMouseLeftPressed = False
+        # self.__isMouseRightPressed = False
+        # self.__stayingMouseX = 0
+        # self.__stayingMouseY = 0
+        # self.__movingMouseX = 0
+        # self.__movingMouseY = 0
+
+        # Camera data
+        self.cameraDistance = 3
+        self.cameraYaw = 50
+        self.cameraPitch = -25
+        self.cameraTargetPosition = (0, 0, 0)
         
         # PyBullet load materials
         self.car = p.loadURDF('/src/simplecar.urdf', [0, 0, 0.1], globalScaling=0.5)
@@ -86,25 +109,76 @@ class pyBulletView:
         for joint_index in self.hinge_indices:
             p.setJointMotorControl2(self.car, joint_index, p.POSITION_CONTROL, targetPosition=(-p.readUserDebugParameter(self.steering) if (p.readUserDebugParameter(self.isSimulating) % 2 == receiving) else -user_steering))
 
+    def inputDeviceControl(self):
+        # Keyboard events
+        keys = p.getKeyboardEvents()
+        
+        self.__isKeyLeftPressed = keys.get(p.B3G_LEFT_ARROW)
+        self.__isKeyUpPressed = keys.get(p.B3G_UP_ARROW)
+        self.__isKeyRightPressed = keys.get(p.B3G_RIGHT_ARROW)
+        self.__isKeyDownPressed = keys.get(p.B3G_DOWN_ARROW)
+
+        # Mouse events
+        # try:
+        #     self.__isMouseMoving = False
+        #     prevLeftPressed = self.__isMouseLeftPressed
+        #     prevRightPressed = self.__isMouseRightPressed
+        #     for mouseEvent in p.getMouseEvents():
+        #         if mouseEvent[0] == 1:
+        #             self.__isMouseMoving = True
+        #             self.__movingMouseX = mouseEvent[1]
+        #             self.__movingMouseY = mouseEvent[2]
+        #         if mouseEvent[0] == 2:
+        #             self.__isMouseLeftPressed = mouseEvent[3] == 0 and mouseEvent[4] == 3
+        #             self.__isMouseRightPressed = mouseEvent[3] == 2 and mouseEvent[4] == 3
+        #             if not prevLeftPressed or not prevRightPressed:
+        #                 self.__stayingMouseX = mouseEvent[1]
+        #                 self.__stayingMouseY = mouseEvent[2]
+        # except:
+        #     pass
+
     def cameraControl(self):
         carNumClicked = p.readUserDebugParameter(self.switchCamera)
-        position, orientation = p.getBasePositionAndOrientation(self.car)
+        [x, y, z], orientation = p.getBasePositionAndOrientation(self.car)
 
         if carNumClicked % 2 == 0:
             _, _, yaw = p.getEulerFromQuaternion(orientation)
-            camDist = p.readUserDebugParameter(self.cameraOffset)
             camAngle = p.readUserDebugParameter(self.cameraAngle)
-            p.resetDebugVisualizerCamera(cameraDistance=camDist,
-                                        cameraYaw=np.degrees(yaw - np.pi / 2),
-                                        cameraPitch=-camAngle*180/np.pi,
-                                        cameraTargetPosition=(position[0] + np.cos(yaw) * (1 - camDist * (1 - np.cos(camAngle))),
-                                                            position[1] + np.sin(yaw) * (1 - camDist * (1 - np.cos(camAngle))),
-                                                            position[2] + p.readUserDebugParameter(self.cameraHeight) - camDist * np.sin(camAngle)))
-            
-            self.carImage = p.getCameraImage(IMG_WIDTH, IMG_HEIGHT)[2]
+
+            cameraDistance = p.readUserDebugParameter(self.cameraOffset)
+            cameraYaw = np.degrees(yaw - np.pi / 2)
+            cameraPitch = - np.rad2deg(camAngle)
+            cameraTargetPosition = (
+                x + np.cos(yaw) * (1 - cameraDistance * (1 - np.cos(camAngle))),
+                y + np.sin(yaw) * (1 - cameraDistance * (1 - np.cos(camAngle))),
+                z + p.readUserDebugParameter(self.cameraHeight) - cameraDistance * np.sin(camAngle)
+            )
+                       
+            _, _, self.carImage = p.getCameraImage(IMG_WIDTH, IMG_HEIGHT)
         else:
-            # p.resetDebugVisualizerCamera(cameraDistance=3, cameraYaw=50, cameraPitch=-25, cameraTargetPosition=(0, 0, 0))
-            pass
+            # if (self.__isMouseRightPressed and self.__isMouseMoving):
+            #     print(self.__movingMouseX - self.__stayingMouseX, self.__movingMouseY - self.__stayingMouseY)
+
+            # p.resetDebugVisualizerCamera(self.cameraDistance, self.cameraYaw, self.cameraPitch, self.cameraTargetPosition)
+
+            *_, cameraYaw, cameraPitch, cameraDistance, [camX, camY, camZ] = p.getDebugVisualizerCamera()
+            
+            if (self.__isKeyLeftPressed):
+                camX -= .02 * np.cos(np.deg2rad(cameraYaw))
+                camY -= .02 * np.sin(np.deg2rad(cameraYaw))
+            if (self.__isKeyRightPressed):
+                camX += .02 * np.cos(np.deg2rad(cameraYaw))
+                camY += .02 * np.sin(np.deg2rad(cameraYaw))
+            if (self.__isKeyUpPressed):
+                camX -= .02 * np.sin(np.deg2rad(cameraYaw))
+                camY += .02 * np.cos(np.deg2rad(cameraYaw))
+            if (self.__isKeyDownPressed):
+                camX += .02 * np.sin(np.deg2rad(cameraYaw))
+                camY -= .02 * np.cos(np.deg2rad(cameraYaw))
+            
+            cameraTargetPosition = [camX, camY, camZ]
+
+        p.resetDebugVisualizerCamera(cameraDistance, cameraYaw, cameraPitch, cameraTargetPosition)
 
     def pictureControl(self):
         if self.takePicClicked != p.readUserDebugParameter(self.takePic):
@@ -162,6 +236,7 @@ class pySCserver:
         print("-----Server ended with counter: " + str(self.__counter))
 
     def loop(self, delay=DEFAULT_FRAME_RATE):
+        self.pBV.inputDeviceControl()
         self.pBV.carControl()
         self.pBV.motorControl(self.__motor_speed, self.__motor_turn)
         self.pBV.cameraControl()

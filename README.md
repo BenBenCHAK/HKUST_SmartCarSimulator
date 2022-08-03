@@ -89,7 +89,9 @@ make
 > Hint: If you cannot "make", then just manually compile the C++ code. Refer to the makefile.
 
 ## To-do list 
-- Flexible cars and tracks control, i.e. markings on the track, really moving camera
+- Flexible cars and tracks control
+i.e. markings on the track, input control + god view navigation, really moving car camera, camera projection view (i.e. fish eye stuff), debug param panel view mode changing
+car mass distribution, friction, size matching units
 - Code refactoring and beautifying
 - Multiple cameras and light sources
 - Gradual change of motor speed
