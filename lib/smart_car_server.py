@@ -42,6 +42,9 @@ class pyBulletView:
         self.switchCamera = p.addUserDebugParameter('God view / Car camera', 1, 0, 1)
         self.takePic = p.addUserDebugParameter('Take Picture', 1, 0, 1)
 
+        self.enableMarking = p.addUserDebugParameter('Show / Hide Trajectory', 1, 0, 1)
+        self.__markFrom = [[0]*3]*4
+
         self.isSimulating = p.addUserDebugParameter('Enable / Disable simulation', 1, 0, 1)
 
         self.takePicClicked = p.readUserDebugParameter(self.takePic)
@@ -104,10 +107,9 @@ class pyBulletView:
     def motorControl(self, user_throttle, user_steering):
         # receiving == 1 means getting command and drive but 0 means manual control in debugging
         receiving = 1
-        for joint_index in self.wheel_indices:
-            p.setJointMotorControl2(self.car, joint_index, p.VELOCITY_CONTROL, targetVelocity=(p.readUserDebugParameter(self.throttle) if (p.readUserDebugParameter(self.isSimulating) % 2 == receiving) else user_throttle))
-        for joint_index in self.hinge_indices:
-            p.setJointMotorControl2(self.car, joint_index, p.POSITION_CONTROL, targetPosition=(-p.readUserDebugParameter(self.steering) if (p.readUserDebugParameter(self.isSimulating) % 2 == receiving) else -user_steering))
+        
+        p.setJointMotorControlArray(self.car, self.wheel_indices, p.VELOCITY_CONTROL, targetVelocities=[(p.readUserDebugParameter(self.throttle) if (p.readUserDebugParameter(self.isSimulating) % 2 == receiving) else user_throttle)]*4)
+        p.setJointMotorControlArray(self.car, self.hinge_indices, p.POSITION_CONTROL, targetPositions=[(-p.readUserDebugParameter(self.steering) if (p.readUserDebugParameter(self.isSimulating) % 2 == receiving) else -user_steering)]*2)
 
     def inputDeviceControl(self):
         # Keyboard events
@@ -137,9 +139,12 @@ class pyBulletView:
         # except:
         #     pass
 
-    def cameraControl(self):
+    def cameraControl(self, counter):
         carNumClicked = p.readUserDebugParameter(self.switchCamera)
         [x, y, z], orientation = p.getBasePositionAndOrientation(self.car)
+
+        if counter % 50 == 0:
+            self.leaveMarking(p.readUserDebugParameter(self.enableMarking) % 2 == 0)
 
         if carNumClicked % 2 == 0:
             _, _, yaw = p.getEulerFromQuaternion(orientation)
@@ -190,16 +195,17 @@ class pyBulletView:
             
             self.takePicClicked = p.readUserDebugParameter(self.takePic)
 
-    def leaveMarking(self, markFrom):
+    def leaveMarking(self, mark):
         LFmarkTo, RFmarkTo, LBmarkTo, RBmarkTo = p.getLinkStates(self.car, self.wheel_indices)
-        p.addUserDebugLine(markFrom[0], LFmarkTo[0], [0, 1, 0], 1, 0)
-        p.addUserDebugLine(markFrom[1], RFmarkTo[0], [0, 1, 0], 1, 0)
-        p.addUserDebugLine(markFrom[2], LBmarkTo[0], [1, 0, 0], 1, 0)
-        p.addUserDebugLine(markFrom[3], RBmarkTo[0], [1, 0, 0], 1, 0)
-        markFrom[0] = LFmarkTo[0]
-        markFrom[1] = RFmarkTo[0]
-        markFrom[2] = LBmarkTo[0]
-        markFrom[3] = RBmarkTo[0]
+        if mark:
+            p.addUserDebugLine(self.__markFrom[0], LFmarkTo[0], [0, 1, 0], 1, 0)
+            p.addUserDebugLine(self.__markFrom[1], RFmarkTo[0], [0, 1, 0], 1, 0)
+            p.addUserDebugLine(self.__markFrom[2], LBmarkTo[0], [1, 0, 0], 1, 0)
+            p.addUserDebugLine(self.__markFrom[3], RBmarkTo[0], [1, 0, 0], 1, 0)
+        self.__markFrom[0] = LFmarkTo[0]
+        self.__markFrom[1] = RFmarkTo[0]
+        self.__markFrom[2] = LBmarkTo[0]
+        self.__markFrom[3] = RBmarkTo[0]
 
     def nextFrame(self, delay=DEFAULT_FRAME_RATE):
         p.stepSimulation()
@@ -213,8 +219,6 @@ class pySCserver:
 
         self.__motor_speed = 0
         self.__motor_turn = 0
-
-        self.__markFrom = [[0]*3]*4
 
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -239,11 +243,8 @@ class pySCserver:
         self.pBV.inputDeviceControl()
         self.pBV.carControl()
         self.pBV.motorControl(self.__motor_speed, self.__motor_turn)
-        self.pBV.cameraControl()
+        self.pBV.cameraControl(self.__counter)
         self.pBV.pictureControl()
-
-        if self.__counter % 50 == 0:
-            self.pBV.leaveMarking(self.__markFrom)
 
         self.pBV.nextFrame(delay)
 

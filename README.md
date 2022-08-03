@@ -103,14 +103,18 @@ You can easily adjust the parameters for the simulation.
 ![Sample photo](readme_img/simple_demo.png)
 
 ## To-do list 
-- markings on the track
 - really moving car camera
-- camera projection view (i.e. fish eye stuff)
 - debug param panel view mode changing
+- camera projection view (i.e. fish eye stuff)
 - car mass distribution, friction, size matching units
 - gradual change of motor speed
 - noise
+- different tracks and cars to choose
+- new command: reset simulation, this maybe useful for deep learning
 - **code refactoring and beautifying**
+- PID (PD Control as in setJointMotorControl2)
+
+## Q&A
 
 <!-- ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. -->
