@@ -32,7 +32,7 @@ Install them if you have not installed before.
 pip install pybullet
 pip install numpy
 pip install sockets
-pip install Pillow
+pip install pillow
 ```
 
 ## Usage
@@ -88,10 +88,33 @@ make
 
 > Hint: If you cannot "make", then just manually compile the C++ code. Refer to the makefile.
 
+### PyBullet server usage
+
+The GUI provided looks like this:
+
+![PyBullet GUI](readme_img/pybullet_gui.png)
+
+> You can manually adjust your view in God Mode. To move around, press the arrow keys. To look around, hold any CTRL key and the left mouse button. To zoom in or out, scroll the mouse wheel or hold any CTRL key and the right mouse button.
+
+### Right-side Params Panel usage
+
+You can easily adjust the parameters for the simulation.
+
+![Sample photo](readme_img/simple_demo.png)
+
 ## To-do list 
-- Multiple cameras and light sources
-- Flexible cars and tracks control
-- Code refactoring and beautifying
+- really moving car camera
+- debug param panel view mode changing
+- camera projection view (i.e. fish eye stuff)
+- car mass distribution, friction, size matching units
+- gradual change of motor speed
+- noise
+- different tracks and cars to choose
+- new command: reset simulation, this maybe useful for deep learning
+- **code refactoring and beautifying**
+- PID (PD Control as in setJointMotorControl2)
+
+## Q&A
 
 <!-- ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. -->
