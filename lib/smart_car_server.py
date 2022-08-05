@@ -45,6 +45,8 @@ class pyBulletView:
             
             self.btnTakePic = p.addUserDebugParameter('Take and save camera picture', 1, 0, 0)
 
+            self.carImage = p.getCameraImage(IMG_WIDTH, IMG_HEIGHT)[2]
+
         self.btnStartSimulation = p.addUserDebugParameter('Enable / Disable simulation', 1, 0, 0)
 
     def __init__(self):
@@ -63,7 +65,6 @@ class pyBulletView:
         # self.isSimulating = p.addUserDebugParameter('Enable / Disable simulation', 1, 0, 1)
 
         self.takePicClicked = 0
-        self.carImage = p.getCameraImage(IMG_WIDTH, IMG_HEIGHT)[2]
 
         # User input device data
         self.__isKeyLeftPressed = False
@@ -141,7 +142,7 @@ class pyBulletView:
 
     def carControl(self):
         if p.readUserDebugParameter(self.btnStartSimulation) % 2 == 1: return
-        
+
         carBasePosition, carBaseOrientationEuler = p.getBasePositionAndOrientation(self.car)
         carBasePosition = list(carBasePosition)
         carBaseOrientationEuler = list(p.getEulerFromQuaternion(carBaseOrientationEuler))
@@ -152,19 +153,20 @@ class pyBulletView:
             carBaseOrientationEuler[2] = p.readUserDebugParameter(self.sldCarYaw)
         elif self.viewMode == 1:
             pass
-
+        
         p.resetBasePositionAndOrientation(self.car, carBasePosition, p.getQuaternionFromEuler(carBaseOrientationEuler))
 
     def motorControl(self, user_throttle, user_steering):
-        # targetV, targetP = 0, 0
-        # print(self.viewMode)
-        if self.viewMode == 0:
-            targetV = p.readUserDebugParameter(self.sldThrottle)
-            targetP = - p.readUserDebugParameter(self.sldSteering)
-        elif self.viewMode == 1:
-            # if p.readUserDebugParameter(self.btnStartSimulation) % 2 == 1:
-            targetV = user_throttle
-            targetP = - user_steering
+        if p.readUserDebugParameter(self.btnStartSimulation) % 2 == 0:
+            targetV = 0
+            targetP = 0
+        else:
+            if self.viewMode == 0:
+                targetV = p.readUserDebugParameter(self.sldThrottle)
+                targetP = - p.readUserDebugParameter(self.sldSteering)
+            elif self.viewMode == 1:
+                targetV = user_throttle
+                targetP = - user_steering
 
         p.setJointMotorControlArray(self.car, self.wheel_indices, p.VELOCITY_CONTROL, targetVelocities=[targetV]*4)
         p.setJointMotorControlArray(self.car, self.hinge_indices, p.POSITION_CONTROL, targetPositions=[targetP]*2)
@@ -224,7 +226,7 @@ class pyBulletView:
         if self.viewMode == 0: return
 
         if self.takePicClicked != p.readUserDebugParameter(self.btnTakePic):
-            grey = np.uint8(np.dot(self.carImage[...,:3], [0.2989, 0.5870, 0.1140]))
+            grey = self.getCarCameraImage()
             im = Image.fromarray(grey, mode="L")
             # im = Image.fromarray(image, mode="RGBA").convert("L")
             
@@ -243,6 +245,9 @@ class pyBulletView:
         self.__markFrom[1] = RFmarkTo[0]
         self.__markFrom[2] = LBmarkTo[0]
         self.__markFrom[3] = RBmarkTo[0]
+
+    def getCarCameraImage(self):
+        return np.uint8(np.dot(self.carImage[...,:3], [0.2989, 0.5870, 0.1140]))
 
     def nextFrame(self, delay=DEFAULT_FRAME_RATE):
         p.stepSimulation()
@@ -361,7 +366,8 @@ class pySCserver:
             if debugMode in [0, 2]: print("Turn straight")
             if debugMode in [1, 2]: self.__motor_turn = 0
         elif self.__recv_str == 'GET':
-            img_matrix = np.uint8(np.dot((p.getCameraImage(IMG_WIDTH, IMG_HEIGHT)[2])[...,:3], [0.2989, 0.5870, 0.1140]))
+            # img_matrix = np.uint8(np.dot((p.getCameraImage(IMG_WIDTH, IMG_HEIGHT)[2])[...,:3], [0.2989, 0.5870, 0.1140]))
+            img_matrix = self.pBV.getCarCameraImage()
             
             if debugMode in [0, 2]: print("Send image")
             if debugMode in [1, 2]: self.send(imgEncode(img_matrix, IMG_WIDTH, IMG_HEIGHT))

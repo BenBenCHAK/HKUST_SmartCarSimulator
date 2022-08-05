@@ -104,9 +104,11 @@ You can easily adjust the parameters for the simulation.
 
 ## To-do list 
 - debug param panel view mode changing
+- only control front wheel for turn, back for speed
+- server should not close when client close
+- car mass distribution, friction, size matching units
 - camera projection view (i.e. fish eye stuff)
 - really moving car camera
-- car mass distribution, friction, size matching units
 - gradual change of motor speed
 - noise
 - different tracks and cars to choose
