@@ -92,21 +92,45 @@ make
 
 The GUI provided looks like this:
 
-![PyBullet GUI](readme_img/pybullet_gui.png)
+![PyBullet GUI](readme_img/initial_gui.png)
 
 > You can manually adjust your view in God Mode. To move around, press the arrow keys. To look around, hold any CTRL key and the left mouse button. To zoom in or out, scroll the mouse wheel or hold any CTRL key and the right mouse button.
 
+There are two modes for our simulation. The God Mode is for freestyle and manual controlling the car in real-time; the Client Mode is for transmission of command and car control in real-time. The panel on the right is for controlling parameters for the simulation.
+
 ### Right-side Params Panel usage
 
-You can easily adjust the parameters for the simulation.
+#### God Mode
 
-![Sample photo](readme_img/simple_demo.png)
+![God Mode Parameters](readme_img/god_mode_params.png)
+
+1. Button to switch to Client Mode
+2. Slider to adjust the car's x-coordinate before simulation
+3. Slider to adjust the car's y-coordinate before simulation
+4. Slider to adjust the car's direction before simulation
+5. Slider to adjust the turning of the car during simulation
+6. Slider to adjust the speed of the car during simulation
+7. Button to start or end simulation
+
+#### Client Mode
+
+![Client Mode Parameters](readme_img/client_mode_params.png)
+
+1. Button to switch to God Mode
+2. Slider to adjust the camera's height before simulation
+3. Slider to adjust the camera's offset from the front of the car before simulation
+4. Slider to adjust the camera's angle before simulation
+5. Button to leave or hide the car's trajectory during simulation
+6. Button to save a picture locally from the camera
+7. Button to start or end simulation
 
 ## To-do list 
-- really moving car camera
-- debug param panel view mode changing
-- camera projection view (i.e. fish eye stuff)
+- only control front wheel for turn, back for speed
+- stop and continue simulation will hv client car moving strangely
+- server should not close when client close
 - car mass distribution, friction, size matching units
+- camera projection view (i.e. fish eye stuff)
+- really moving car camera
 - gradual change of motor speed
 - noise
 - different tracks and cars to choose

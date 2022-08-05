@@ -20,35 +20,48 @@ MAX_THROTTLE = 50 #20
 MAX_STEERING = 1 #0.5
 
 class pyBulletView:
+    def switchMode(self):
+        p.removeAllUserParameters()
+
+        self.viewMode = 1 - self.viewMode
+
+        if self.viewMode == 0:
+            self.btnSwitchCamera = p.addUserDebugParameter('Switch to Client Mode', 1, 0, 0)
+
+            self.sldCarX = p.addUserDebugParameter('Car x-coordinate', -5, 5, 0)
+            self.sldCarY = p.addUserDebugParameter('Car y-coordinate', -5, 5, 0)
+            self.sldCarYaw = p.addUserDebugParameter('Car direction', -np.pi, np.pi, 0)
+
+            self.sldSteering = p.addUserDebugParameter('Wheel direction', -MAX_STEERING, MAX_STEERING, 0)
+            self.sldThrottle = p.addUserDebugParameter('Motor speed', 0, MAX_THROTTLE, 0)       
+        elif self.viewMode == 1:
+            self.btnSwitchCamera = p.addUserDebugParameter('Switch to God Mode', 1, 0, 1)
+
+            self.sldCameraHeight = p.addUserDebugParameter('Car camera height', 0.1, 0.25, 0.25)
+            self.sldCameraOffset = p.addUserDebugParameter('Car camera offset', 0.8, 1.2, 0.85)
+            self.sldCameraAngle = p.addUserDebugParameter('Car camera angle', -1, 1, 0.5)
+
+            self.btnEnableMarking = p.addUserDebugParameter('Show / Hide trajectory', 1, 0, 0)
+            
+            self.btnTakePic = p.addUserDebugParameter('Take and save camera picture', 1, 0, 0)
+
+            self.carImage = p.getCameraImage(IMG_WIDTH, IMG_HEIGHT)[2]
+
+        self.btnStartSimulation = p.addUserDebugParameter('Enable / Disable simulation', 1, 0, 0)
+
     def __init__(self):
         # Basic pyBullet config
         p.connect(p.GUI)
         # p.setAdditionalSearchPath(pybullet_data.getDataPath())
         p.setGravity(0, 0, A_G)
 
-        # View Mode: 0 = God mode; 1 = Client mode
-        # self.viewMode = 0
-        
-        # PyBullet view config
-        self.carX = p.addUserDebugParameter('Car X coordinate', -5, 5, 0)
-        self.carY = p.addUserDebugParameter('Car Y coordinate', -5, 5, 0)
-        self.carA = p.addUserDebugParameter('Car Direction', -np.pi, np.pi, 0)
-        self.steering = p.addUserDebugParameter('Steering', -MAX_STEERING, MAX_STEERING, 0)
-        self.throttle = p.addUserDebugParameter('Throttle', 0, MAX_THROTTLE, 0)
+        # View Mode: 0 = God mode; 1 = Client mode; Below will switch back to God mode
+        self.viewMode = 1
+        self.switchMode()
 
-        self.cameraHeight = p.addUserDebugParameter('Car Camera Height', 0.1, 0.25, 0.25)
-        self.cameraOffset = p.addUserDebugParameter('Car Camera Offset', 0.8, 1.2, 0.85)
-        self.cameraAngle = p.addUserDebugParameter('Car Camera Angle', -1, 1, 0.5)
-        self.switchCamera = p.addUserDebugParameter('God view / Car camera', 1, 0, 1)
-        self.takePic = p.addUserDebugParameter('Take Picture', 1, 0, 1)
-
-        self.enableMarking = p.addUserDebugParameter('Show / Hide Trajectory', 1, 0, 1)
         self.__markFrom = [[0]*3]*4
 
-        self.isSimulating = p.addUserDebugParameter('Enable / Disable simulation', 1, 0, 1)
-
-        self.takePicClicked = p.readUserDebugParameter(self.takePic)
-        self.carImage = p.getCameraImage(IMG_WIDTH, IMG_HEIGHT)[2]
+        self.lastTakePicClicked = 0
 
         # User input device data
         self.__isKeyLeftPressed = False
@@ -92,26 +105,24 @@ class pyBulletView:
     def __del__(self):
         p.disconnect()
 
-    def carControl(self):
-        if p.readUserDebugParameter(self.isSimulating) % 2 == 0: return
+    def controlInputAndParam(self, counter):
+        self.__counter = counter
 
-        carBasePosition = list(p.getBasePositionAndOrientation(self.car)[0])
-        carBaseOrientationEuler = list(p.getEulerFromQuaternion(p.getBasePositionAndOrientation(self.car)[1]))
+        if self.viewMode != p.readUserDebugParameter(self.btnSwitchCamera):
+            self.switchMode()
 
-        carBasePosition[0] = p.readUserDebugParameter(self.carX)
-        carBasePosition[1] = p.readUserDebugParameter(self.carY)
-        carBaseOrientationEuler[2] = p.readUserDebugParameter(self.carA)
-
-        p.resetBasePositionAndOrientation(self.car, carBasePosition, p.getQuaternionFromEuler(carBaseOrientationEuler))
-
-    def motorControl(self, user_throttle, user_steering):
-        # receiving == 1 means getting command and drive but 0 means manual control in debugging
-        receiving = 1
+        if self.viewMode == 0:
+            self.carX = p.readUserDebugParameter(self.sldCarX)
+            self.carY = p.readUserDebugParameter(self.sldCarY)
+            self.carYaw = p.readUserDebugParameter(self.sldCarYaw)
+            self.carThr = p.readUserDebugParameter(self.sldThrottle)
+            self.carSte = p.readUserDebugParameter(self.sldSteering)
+        elif self.viewMode == 1:
+            self.trajectoryOn = p.readUserDebugParameter(self.btnEnableMarking) % 2
+            self.camAngle = p.readUserDebugParameter(self.sldCameraAngle)
+            self.cameraHeight = p.readUserDebugParameter(self.sldCameraHeight)
+            self.cameraDistance = p.readUserDebugParameter(self.sldCameraOffset)
         
-        p.setJointMotorControlArray(self.car, self.wheel_indices, p.VELOCITY_CONTROL, targetVelocities=[(p.readUserDebugParameter(self.throttle) if (p.readUserDebugParameter(self.isSimulating) % 2 == receiving) else user_throttle)]*4)
-        p.setJointMotorControlArray(self.car, self.hinge_indices, p.POSITION_CONTROL, targetPositions=[(-p.readUserDebugParameter(self.steering) if (p.readUserDebugParameter(self.isSimulating) % 2 == receiving) else -user_steering)]*2)
-
-    def inputDeviceControl(self):
         # Keyboard events
         keys = p.getKeyboardEvents()
         
@@ -120,53 +131,44 @@ class pyBulletView:
         self.__isKeyRightPressed = keys.get(p.B3G_RIGHT_ARROW)
         self.__isKeyDownPressed = keys.get(p.B3G_DOWN_ARROW)
 
-        # Mouse events
-        # try:
-        #     self.__isMouseMoving = False
-        #     prevLeftPressed = self.__isMouseLeftPressed
-        #     prevRightPressed = self.__isMouseRightPressed
-        #     for mouseEvent in p.getMouseEvents():
-        #         if mouseEvent[0] == 1:
-        #             self.__isMouseMoving = True
-        #             self.__movingMouseX = mouseEvent[1]
-        #             self.__movingMouseY = mouseEvent[2]
-        #         if mouseEvent[0] == 2:
-        #             self.__isMouseLeftPressed = mouseEvent[3] == 0 and mouseEvent[4] == 3
-        #             self.__isMouseRightPressed = mouseEvent[3] == 2 and mouseEvent[4] == 3
-        #             if not prevLeftPressed or not prevRightPressed:
-        #                 self.__stayingMouseX = mouseEvent[1]
-        #                 self.__stayingMouseY = mouseEvent[2]
-        # except:
-        #     pass
+        self.__simulationState = p.readUserDebugParameter(self.btnStartSimulation) % 2
 
-    def cameraControl(self, counter):
-        carNumClicked = p.readUserDebugParameter(self.switchCamera)
-        [x, y, z], orientation = p.getBasePositionAndOrientation(self.car)
+        carBasePos, carBaseOriQuat = p.getBasePositionAndOrientation(self.car)
+        [self.__carBaseX, self.__carBaseY, self.__carBaseZ] = carBasePos
+        [self.__carBaseRoll, self.__carBasePitch, self.__carBaseYaw] = p.getEulerFromQuaternion(carBaseOriQuat)
 
-        if counter % 50 == 0:
-            self.leaveMarking(p.readUserDebugParameter(self.enableMarking) % 2 == 0)
+    def carControl(self):
+        if self.__simulationState == 1: return
 
-        if carNumClicked % 2 == 0:
-            _, _, yaw = p.getEulerFromQuaternion(orientation)
-            camAngle = p.readUserDebugParameter(self.cameraAngle)
+        if self.viewMode == 0:
+            self.__carBaseX = self.carX
+            self.__carBaseY = self.carY
+            self.__carBaseYaw = self.carYaw
+        elif self.viewMode == 1:
+            pass
+        
+        p.resetBasePositionAndOrientation(self.car, [self.__carBaseX, self.__carBaseY, self.__carBaseZ], p.getQuaternionFromEuler([self.__carBaseRoll, self.__carBasePitch, self.__carBaseYaw]))
 
-            cameraDistance = p.readUserDebugParameter(self.cameraOffset)
-            cameraYaw = np.degrees(yaw - np.pi / 2)
-            cameraPitch = - np.rad2deg(camAngle)
-            cameraTargetPosition = (
-                x + np.cos(yaw) * (1 - cameraDistance * (1 - np.cos(camAngle))),
-                y + np.sin(yaw) * (1 - cameraDistance * (1 - np.cos(camAngle))),
-                z + p.readUserDebugParameter(self.cameraHeight) - cameraDistance * np.sin(camAngle)
-            )
-                       
-            self.carImage = p.getCameraImage(IMG_WIDTH, IMG_HEIGHT)[2]
+    def motorControl(self, user_throttle, user_steering):
+        if self.__simulationState == 0:
+            targetV = 0
+            targetP = 0
         else:
-            # if (self.__isMouseRightPressed and self.__isMouseMoving):
-            #     print(self.__movingMouseX - self.__stayingMouseX, self.__movingMouseY - self.__stayingMouseY)
+            if self.viewMode == 0:
+                targetV = self.carThr
+                targetP = - self.carSte
+            elif self.viewMode == 1:
+                targetV = user_throttle
+                targetP = - user_steering
 
-            # p.resetDebugVisualizerCamera(self.cameraDistance, self.cameraYaw, self.cameraPitch, self.cameraTargetPosition)
-
-            *_, cameraYaw, cameraPitch, cameraDistance, [camX, camY, camZ] = p.getDebugVisualizerCamera()
+        p.setJointMotorControlArray(self.car, self.wheel_indices, p.VELOCITY_CONTROL, targetVelocities=[targetV]*4)
+        p.setJointMotorControlArray(self.car, self.hinge_indices, p.POSITION_CONTROL, targetPositions=[targetP]*2)
+        
+        # p.setJointMotorControl2(self.car, 7, p.POSITION_CONTROL, targetPosition=(p.readUserDebugParameter(self.cameraHeight)))
+        
+    def cameraControl(self):
+        if self.viewMode == 0:
+            *_, cameraYaw, cameraPitch, self.cameraDistance, [camX, camY, camZ] = p.getDebugVisualizerCamera()
             
             if (self.__isKeyLeftPressed):
                 camX -= .02 * np.cos(np.deg2rad(cameraYaw))
@@ -182,18 +184,34 @@ class pyBulletView:
                 camY -= .02 * np.cos(np.deg2rad(cameraYaw))
             
             cameraTargetPosition = [camX, camY, camZ]
+        elif self.viewMode == 1:
+            if self.__counter % 50 == 0:
+                self.leaveMarking(self.trajectoryOn == 1)
 
-        p.resetDebugVisualizerCamera(cameraDistance, cameraYaw, cameraPitch, cameraTargetPosition)
+            cameraYaw = np.degrees(self.__carBaseYaw - np.pi / 2)
+            cameraPitch = - np.rad2deg(self.camAngle)
+            planarOffset = (1 - self.cameraDistance * (1 - np.cos(self.camAngle)))
+            cameraTargetPosition = (
+                self.__carBaseX + np.cos(self.__carBaseYaw) * planarOffset,
+                self.__carBaseY + np.sin(self.__carBaseYaw) * planarOffset,
+                self.__carBaseZ + self.cameraHeight - self.cameraDistance * np.sin(self.camAngle)
+            )
+                       
+            self.carImage = p.getCameraImage(IMG_WIDTH, IMG_HEIGHT)[2]
+
+        p.resetDebugVisualizerCamera(self.cameraDistance, cameraYaw, cameraPitch, cameraTargetPosition)
 
     def pictureControl(self):
-        if self.takePicClicked != p.readUserDebugParameter(self.takePic):
-            grey = np.uint8(np.dot(self.carImage[...,:3], [0.2989, 0.5870, 0.1140]))
+        if self.viewMode != 1: return
+
+        if self.lastTakePicClicked != p.readUserDebugParameter(self.btnTakePic):
+            grey = self.getCarCameraImage()
             im = Image.fromarray(grey, mode="L")
             # im = Image.fromarray(image, mode="RGBA").convert("L")
             
             im.save("capture.png")
             
-            self.takePicClicked = p.readUserDebugParameter(self.takePic)
+            self.lastTakePicClicked = p.readUserDebugParameter(self.btnTakePic)
 
     def leaveMarking(self, mark):
         LFmarkTo, RFmarkTo, LBmarkTo, RBmarkTo = p.getLinkStates(self.car, self.wheel_indices)
@@ -206,6 +224,9 @@ class pyBulletView:
         self.__markFrom[1] = RFmarkTo[0]
         self.__markFrom[2] = LBmarkTo[0]
         self.__markFrom[3] = RBmarkTo[0]
+
+    def getCarCameraImage(self):
+        return np.uint8(np.dot(self.carImage[...,:3], [0.2989, 0.5870, 0.1140]))
 
     def nextFrame(self, delay=DEFAULT_FRAME_RATE):
         p.stepSimulation()
@@ -240,10 +261,11 @@ class pySCserver:
         print("-----Server ended with counter: " + str(self.__counter))
 
     def loop(self, delay=DEFAULT_FRAME_RATE):
-        self.pBV.inputDeviceControl()
+        self.pBV.controlInputAndParam(self.__counter)
+
         self.pBV.carControl()
         self.pBV.motorControl(self.__motor_speed, self.__motor_turn)
-        self.pBV.cameraControl(self.__counter)
+        self.pBV.cameraControl()
         self.pBV.pictureControl()
 
         self.pBV.nextFrame(delay)
@@ -323,7 +345,8 @@ class pySCserver:
             if debugMode in [0, 2]: print("Turn straight")
             if debugMode in [1, 2]: self.__motor_turn = 0
         elif self.__recv_str == 'GET':
-            img_matrix = np.uint8(np.dot((p.getCameraImage(IMG_WIDTH, IMG_HEIGHT)[2])[...,:3], [0.2989, 0.5870, 0.1140]))
+            # img_matrix = np.uint8(np.dot((p.getCameraImage(IMG_WIDTH, IMG_HEIGHT)[2])[...,:3], [0.2989, 0.5870, 0.1140]))
+            img_matrix = self.pBV.getCarCameraImage()
             
             if debugMode in [0, 2]: print("Send image")
             if debugMode in [1, 2]: self.send(imgEncode(img_matrix, IMG_WIDTH, IMG_HEIGHT))
