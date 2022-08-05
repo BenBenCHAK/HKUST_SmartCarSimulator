@@ -103,8 +103,9 @@ You can easily adjust the parameters for the simulation.
 ![Sample photo](readme_img/simple_demo.png)
 
 ## To-do list 
-- debug param panel view mode changing
+- refactoring by getting all stuff to param control
 - only control front wheel for turn, back for speed
+- stop and continue simulation will hv client car moving strangely
 - server should not close when client close
 - car mass distribution, friction, size matching units
 - camera projection view (i.e. fish eye stuff)
