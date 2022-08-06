@@ -226,7 +226,7 @@ class pyBulletView:
         self.__markFrom[3] = RBmarkTo[0]
 
     def getCarCameraImage(self):
-        return np.uint8(np.dot(self.carImage[...,:3], [0.2989, 0.5870, 0.1140]))
+        return np.uint8(np.dot(self.carImage[:,:,:3], [0.2989, 0.5870, 0.1140]))
 
     def nextFrame(self, delay=DEFAULT_FRAME_RATE):
         p.stepSimulation()
