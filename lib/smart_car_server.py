@@ -69,14 +69,6 @@ class pyBulletView:
         self.__isKeyRightPressed = False
         self.__isKeyDownPressed = False
 
-        # self.__isMouseMoving = False
-        # self.__isMouseLeftPressed = False
-        # self.__isMouseRightPressed = False
-        # self.__stayingMouseX = 0
-        # self.__stayingMouseY = 0
-        # self.__movingMouseX = 0
-        # self.__movingMouseY = 0
-
         # Camera data
         self.cameraDistance = 3
         self.cameraYaw = 50
@@ -205,9 +197,7 @@ class pyBulletView:
         if self.viewMode != 1: return
 
         if self.lastTakePicClicked != p.readUserDebugParameter(self.btnTakePic):
-            grey = self.getCarCameraImage()
-            im = Image.fromarray(grey, mode="L")
-            # im = Image.fromarray(image, mode="RGBA").convert("L")
+            im = Image.fromarray(self.getCarCameraImage(), mode="L")
             
             im.save("capture.png")
             
@@ -216,8 +206,8 @@ class pyBulletView:
     def leaveMarking(self, mark):
         LFmarkTo, RFmarkTo, LBmarkTo, RBmarkTo = p.getLinkStates(self.car, self.wheel_indices)
         if mark:
-            p.addUserDebugLine(self.__markFrom[0], LFmarkTo[0], [0, 1, 0], 1, 0)
-            p.addUserDebugLine(self.__markFrom[1], RFmarkTo[0], [0, 1, 0], 1, 0)
+            p.addUserDebugLine(self.__markFrom[0], LFmarkTo[0], [0, 0, 1], 1, 0)
+            p.addUserDebugLine(self.__markFrom[1], RFmarkTo[0], [0, 0, 1], 1, 0)
             p.addUserDebugLine(self.__markFrom[2], LBmarkTo[0], [1, 0, 0], 1, 0)
             p.addUserDebugLine(self.__markFrom[3], RBmarkTo[0], [1, 0, 0], 1, 0)
         self.__markFrom[0] = LFmarkTo[0]
@@ -226,7 +216,7 @@ class pyBulletView:
         self.__markFrom[3] = RBmarkTo[0]
 
     def getCarCameraImage(self):
-        return np.uint8(np.dot(self.carImage[:,:,:3], [0.2989, 0.5870, 0.1140]))
+        return np.dot(self.carImage[...,:3], [0.299, 0.587, 0.114]).astype(np.uint8)
 
     def nextFrame(self, delay=DEFAULT_FRAME_RATE):
         p.stepSimulation()
@@ -345,7 +335,6 @@ class pySCserver:
             if debugMode in [0, 2]: print("Turn straight")
             if debugMode in [1, 2]: self.__motor_turn = 0
         elif self.__recv_str == 'GET':
-            # img_matrix = np.uint8(np.dot((p.getCameraImage(IMG_WIDTH, IMG_HEIGHT)[2])[...,:3], [0.2989, 0.5870, 0.1140]))
             img_matrix = self.pBV.getCarCameraImage()
             
             if debugMode in [0, 2]: print("Send image")
