@@ -125,9 +125,8 @@ There are two modes for our simulation. The God Mode is for freestyle and manual
 7. Button to start or end simulation
 
 ## To-do list 
+- **code refactoring and beautifying**
 - only control front wheel for turn, back for speed
-- stop and continue simulation will hv client car moving strangely
-- server should not close when client close
 - car mass distribution, friction, size matching units
 - camera projection view (i.e. fish eye stuff)
 - really moving car camera
@@ -135,8 +134,8 @@ There are two modes for our simulation. The God Mode is for freestyle and manual
 - noise
 - different tracks and cars to choose
 - new command: reset simulation, this maybe useful for deep learning
-- **code refactoring and beautifying**
 - PID (PD Control as in setJointMotorControl2)
+- multiple clients in same server
 
 ## Q&A
 

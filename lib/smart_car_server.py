@@ -45,8 +45,6 @@ class pyBulletView:
             
             self.btnTakePic = p.addUserDebugParameter('Take and save camera picture', 1, 0, 0)
 
-            self.carImage = p.getCameraImage(IMG_WIDTH, IMG_HEIGHT)[2]
-
         self.btnStartSimulation = p.addUserDebugParameter('Enable / Disable simulation', 1, 0, 0)
 
     def __init__(self):
@@ -74,6 +72,8 @@ class pyBulletView:
         self.cameraYaw = 50
         self.cameraPitch = -25
         self.cameraTargetPosition = (0, 0, 0)
+
+        self.carImage = p.getCameraImage(IMG_WIDTH, IMG_HEIGHT)[2]
         
         # PyBullet load materials
         self.car = p.loadURDF('/src/simplecar.urdf', [0, 0, 0.1], globalScaling=0.5)
@@ -84,8 +84,8 @@ class pyBulletView:
         self.wheel_indices = [1, 3, 4, 5]
         self.hinge_indices = [0, 2]
         self.camera_indices = [6, 7, 8]
-        # number_of_joints = p.getNumJoints(self.car)
-        # for joint_number in range(number_of_joints):
+        self.motor_wheels = [4, 5]
+        # for joint_number in range(p.getNumJoints(self.car)):
         #     info = p.getJointInfo(self.car, joint_number)
         #     print(info[0], ": ", info[1], "\n")
 
@@ -232,7 +232,7 @@ class pySCserver:
         self.__motor_turn = 0
 
         self.server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        # self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        self.server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.server.bind(("localhost", 8888))
         self.server.setblocking(False)
         self.server.listen(1)
@@ -274,15 +274,18 @@ class pySCserver:
                 self.connection.setblocking(False)
                 self.inputs.append(self.connection)
             else:
-                self.__recv_str = s.recv(num_bytes).decode("ascii")
-                if self.__recv_str:
-                    if s not in self.outputs:
-                        self.outputs.append(s)
-                else:
-                    if s in self.outputs:
-                        self.outputs.remove(s)
-                    self.inputs.remove(s)
-                    s.close()
+                try:
+                    self.__recv_str = s.recv(num_bytes).decode("ascii")
+                    if self.__recv_str:
+                        if s not in self.outputs:
+                            self.outputs.append(s)
+                    else:
+                        if s in self.outputs:
+                            self.outputs.remove(s)
+                        self.inputs.remove(s)
+                        s.close()
+                except:
+                    pass
 
         for s in exceptional:
             self.inputs.remove(s)
