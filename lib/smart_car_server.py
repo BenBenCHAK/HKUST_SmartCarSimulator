@@ -113,7 +113,7 @@ class pyBulletView:
             self.carSte = p.readUserDebugParameter(self.sldSteering)
         elif self.viewMode == 1:
             self.trajectoryOn = p.readUserDebugParameter(self.btnEnableMarking) % 2
-            self.camAngle = p.readUserDebugParameter(self.sldCameraAngle)
+            self.cameraAngle = p.readUserDebugParameter(self.sldCameraAngle)
             self.cameraHeight = p.readUserDebugParameter(self.sldCameraHeight)
             self.cameraDistance = p.readUserDebugParameter(self.sldCameraOffset)
         
@@ -126,6 +126,11 @@ class pyBulletView:
         self.__isKeyDownPressed = keys.get(p.B3G_DOWN_ARROW)
 
         self.__simulationState = p.readUserDebugParameter(self.btnStartSimulation) % 2
+
+        if self.viewMode == 1 and self.__simulationState == 0:
+            self.__camAngle = self.cameraAngle
+            self.__camHeight = self.cameraHeight
+            self.__camDistance = self.cameraDistance
 
         carBasePos, carBaseOriQuat = p.getBasePositionAndOrientation(self.car)
         [self.__carBaseX, self.__carBaseY, self.__carBaseZ] = carBasePos
@@ -162,7 +167,7 @@ class pyBulletView:
         
     def cameraControl(self):
         if self.viewMode == 0:
-            *_, cameraYaw, cameraPitch, self.cameraDistance, [camX, camY, camZ] = p.getDebugVisualizerCamera()
+            *_, cameraYaw, cameraPitch, cameraDistance, [camX, camY, camZ] = p.getDebugVisualizerCamera()
 
             if (self.__isKeyLeftPressed):
                 camX -= .02 * np.cos(np.deg2rad(cameraYaw))
@@ -179,16 +184,17 @@ class pyBulletView:
             
             cameraTargetPosition = [camX, camY, camZ]
         elif self.viewMode == 1:
-            cameraYaw = np.degrees(self.__carBaseYaw - np.pi / 2)
-            cameraPitch = - np.rad2deg(self.camAngle)
-            planarOffset = (1 - self.cameraDistance * (1 - np.cos(self.camAngle)))
+            cameraDistance = self.__camDistance
+            cameraYaw = np.rad2deg(self.__carBaseYaw - np.pi / 2)
+            cameraPitch = - np.rad2deg(self.__camAngle)
+            planarOffset = (1 - self.__camDistance * (1 - np.cos(self.__camAngle)))
             cameraTargetPosition = (
                 self.__carBaseX + np.cos(self.__carBaseYaw) * planarOffset,
                 self.__carBaseY + np.sin(self.__carBaseYaw) * planarOffset,
-                self.__carBaseZ + self.cameraHeight - self.cameraDistance * np.sin(self.camAngle)
-            )            
+                self.__carBaseZ + self.__camHeight - self.__camDistance * np.sin(self.__camAngle)
+            )
 
-        p.resetDebugVisualizerCamera(self.cameraDistance, cameraYaw, cameraPitch, cameraTargetPosition)
+        p.resetDebugVisualizerCamera(cameraDistance, cameraYaw, cameraPitch, cameraTargetPosition)
 
     def pictureControl(self):
         if self.viewMode != 1: return
@@ -325,7 +331,10 @@ class pySCserver:
 
         parsedValue = (ord(self.__recv_str[2]) - 1) * 128 + ord(self.__recv_str[1])
 
-        if self.__recv_str[0] == 'F':
+        if self.__recv_str == 'PNG':
+            if debugMode in [0, 2]: print("Got a Ping. Giving out an Acknowledgement.")
+            if debugMode in [1, 2]: self.send(bytes("ACK", "ascii"))
+        elif self.__recv_str[0] == 'F':
             if debugMode in [0, 2]: print("Move forward for speed of", parsedValue)
             if debugMode in [1, 2]: self.__motor_speed = parsedValue * MAX_THROTTLE / 16256
         elif self.__recv_str[0] == 'B':

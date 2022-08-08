@@ -73,11 +73,13 @@ void imageControl(serverSmartCar &sc) {
 
 int main() {
     serverSmartCar server;
+    server.initServer();
     server.connectServer();
 
     // debugControl(server);
     // simpleControl(server);
     while (true) {
+
         imageControl(server);
         Sleep(20);
     }

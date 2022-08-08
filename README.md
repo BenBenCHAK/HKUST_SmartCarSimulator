@@ -127,9 +127,11 @@ There are two modes for our simulation. The God Mode is for freestyle and manual
 
 ## To-do list 
 - **code refactoring and beautifying**
+- timer and cross line
 - car mass distribution, friction, size matching units
-- hoist all constant, reset button to user-stored, save all customizable value to csv (np.savetxt): like a config file
 - only control front wheel for turn, back for speed
+- hoist all constant, reset button to user-stored, save all customizable value to csv (np.savetxt): like a config file
+- client check if lost connection before connecting again (doing)
 - camera projection view (i.e. fish eye stuff)
 - really moving car camera
 - gradual change of motor speed

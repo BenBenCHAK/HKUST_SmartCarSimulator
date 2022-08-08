@@ -19,7 +19,8 @@ class serverSmartCar {
         serverSmartCar();
         ~serverSmartCar();
 
-        int connectServer(const char* ip, const int port);
+        int initServer(const char* ip, const int port);
+        int connectServer();
 
         void motorSpeed(int speed);
         void motorTurn(int angle);
@@ -35,11 +36,12 @@ class serverSmartCar {
         int err;
 
         bool hasErr;
+        bool lostConnection;
 
         SOCKET sockClient;
         SOCKADDR_IN addrSrv;
 
-        uint8_t img_matrix[IMG_HEIGHT][IMG_WIDTH]; 
+        uint8_t img_matrix[IMG_HEIGHT][IMG_WIDTH];
 };
 
 #endif

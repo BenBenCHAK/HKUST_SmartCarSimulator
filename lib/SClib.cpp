@@ -25,15 +25,32 @@ serverSmartCar::~serverSmartCar() {
 	getchar();
 }
 
-int serverSmartCar::connectServer(const char* ip = "127.0.0.1", const int port = 8888) {
+int serverSmartCar::initServer(const char* ip = "127.0.0.1", const int port = 8888) {
 	if (hasErr) return -1;
-
-	sockClient = socket(AF_INET, SOCK_STREAM, 0);
 
 	addrSrv.sin_addr.S_un.S_addr = inet_addr(ip);
 	addrSrv.sin_family = AF_INET;
 	addrSrv.sin_port = htons(port);
-	connect(sockClient, (SOCKADDR*)&addrSrv, sizeof(SOCKADDR));
+
+	lostConnection = true;
+
+	return 0;
+}
+int serverSmartCar::connectServer() {
+	/* This can be put inside a loop
+		adv: keep trying to connect to the server, 
+			so that if the server is closed, it will run still
+		disadv: making python select overwhelmed
+		sol: only try to reconnect when not receiving properly
+			+ remove outdated writables / output in select
+	*/
+
+	if (hasErr) return -1;
+
+	// if (lostConnection) {
+		sockClient = socket(AF_INET, SOCK_STREAM, 0);
+		connect(sockClient, (SOCKADDR*)&addrSrv, sizeof(SOCKADDR));
+	// }
 
 	return 0;
 }
@@ -49,6 +66,7 @@ void serverSmartCar::getImg1D(char *pixels) {
 
 	char recvBuf[NUM_PIXEL_ENCODED];
 	recv(sockClient, recvBuf, NUM_PIXEL_ENCODED, 0);
+
 	for (int i = 0; i < NUM_PIXEL_ENCODED; i++) {
 		pixels[i*3] = recvBuf[i];
 		pixels[i*3 + 1] = recvBuf[i];
@@ -66,6 +84,7 @@ void serverSmartCar::getImg2D() {
 
 	char recvBuf[NUM_PIXEL_ENCODED];
 	recv(sockClient, recvBuf, NUM_PIXEL_ENCODED, 0);
+
 	for (int i = 0; i < NUM_PIXEL_ENCODED; i++) {
 		img_matrix[i / IMG_WIDTH][i % IMG_WIDTH] = recvBuf[i];
 	}
