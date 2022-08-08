@@ -105,12 +105,13 @@ There are two modes for our simulation. The God Mode is for freestyle and manual
 ![God Mode Parameters](readme_img/god_mode_params.png)
 
 1. Button to switch to Client Mode
-2. Slider to adjust the car's x-coordinate before simulation
-3. Slider to adjust the car's y-coordinate before simulation
-4. Slider to adjust the car's direction before simulation
-5. Slider to adjust the turning of the car during simulation
-6. Slider to adjust the speed of the car during simulation
-7. Button to start or end simulation
+2. Button to remove the current trajectory if there is any
+3. Slider to adjust the car's x-coordinate before simulation
+4. Slider to adjust the car's y-coordinate before simulation
+5. Slider to adjust the car's direction before simulation
+6. Slider to adjust the turning of the car during simulation
+7. Slider to adjust the speed of the car during simulation
+8. Button to start or end simulation
 
 #### Client Mode
 
@@ -126,8 +127,9 @@ There are two modes for our simulation. The God Mode is for freestyle and manual
 
 ## To-do list 
 - **code refactoring and beautifying**
-- only control front wheel for turn, back for speed
 - car mass distribution, friction, size matching units
+- hoist all constant, reset button to user-stored, save all customizable value to csv (np.savetxt): like a config file
+- only control front wheel for turn, back for speed
 - camera projection view (i.e. fish eye stuff)
 - really moving car camera
 - gradual change of motor speed
@@ -136,6 +138,7 @@ There are two modes for our simulation. The God Mode is for freestyle and manual
 - new command: reset simulation, this maybe useful for deep learning
 - PID (PD Control as in setJointMotorControl2)
 - multiple clients in same server
+- continue commands if server down but client not down
 
 ## Q&A
 

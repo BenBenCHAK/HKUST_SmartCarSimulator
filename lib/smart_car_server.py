@@ -1,7 +1,6 @@
 import numpy as np
 
 import pybullet as p
-# import pybullet_data
 
 from PIL import Image
 from time import sleep
@@ -9,8 +8,8 @@ from time import sleep
 import socket
 import select
 
-IMG_WIDTH = 128 #10
-IMG_HEIGHT = 120 #12
+IMG_WIDTH = 128
+IMG_HEIGHT = 120
 
 DEFAULT_FRAME_RATE = 1./240.
 
@@ -27,6 +26,8 @@ class pyBulletView:
 
         if self.viewMode == 0:
             self.btnSwitchCamera = p.addUserDebugParameter('Switch to Client Mode', 1, 0, 0)
+            
+            self.btnRemoveMark = p.addUserDebugParameter('Remove current trajectory', 1, 0, 0)
 
             self.sldCarX = p.addUserDebugParameter('Car x-coordinate', -5, 5, 0)
             self.sldCarY = p.addUserDebugParameter('Car y-coordinate', -5, 5, 0)
@@ -42,7 +43,7 @@ class pyBulletView:
             self.sldCameraAngle = p.addUserDebugParameter('Car camera angle', -1, 1, 0.5)
 
             self.btnEnableMarking = p.addUserDebugParameter('Show / Hide trajectory', 1, 0, 0)
-            
+
             self.btnTakePic = p.addUserDebugParameter('Take and save camera picture', 1, 0, 0)
 
         self.btnStartSimulation = p.addUserDebugParameter('Enable / Disable simulation', 1, 0, 0)
@@ -60,6 +61,7 @@ class pyBulletView:
         self.__markFrom = [[0]*3]*4
 
         self.lastTakePicClicked = 0
+        self.lastRemoveMarkClicked = 0
 
         # User input device data
         self.__isKeyLeftPressed = False
@@ -161,7 +163,7 @@ class pyBulletView:
     def cameraControl(self):
         if self.viewMode == 0:
             *_, cameraYaw, cameraPitch, self.cameraDistance, [camX, camY, camZ] = p.getDebugVisualizerCamera()
-            
+
             if (self.__isKeyLeftPressed):
                 camX -= .02 * np.cos(np.deg2rad(cameraYaw))
                 camY -= .02 * np.sin(np.deg2rad(cameraYaw))
@@ -177,9 +179,6 @@ class pyBulletView:
             
             cameraTargetPosition = [camX, camY, camZ]
         elif self.viewMode == 1:
-            if self.__counter % 50 == 0:
-                self.leaveMarking(self.trajectoryOn == 1)
-
             cameraYaw = np.degrees(self.__carBaseYaw - np.pi / 2)
             cameraPitch = - np.rad2deg(self.camAngle)
             planarOffset = (1 - self.cameraDistance * (1 - np.cos(self.camAngle)))
@@ -187,33 +186,39 @@ class pyBulletView:
                 self.__carBaseX + np.cos(self.__carBaseYaw) * planarOffset,
                 self.__carBaseY + np.sin(self.__carBaseYaw) * planarOffset,
                 self.__carBaseZ + self.cameraHeight - self.cameraDistance * np.sin(self.camAngle)
-            )
-                       
-            self.carImage = p.getCameraImage(IMG_WIDTH, IMG_HEIGHT)[2]
+            )            
 
         p.resetDebugVisualizerCamera(self.cameraDistance, cameraYaw, cameraPitch, cameraTargetPosition)
 
     def pictureControl(self):
         if self.viewMode != 1: return
 
+        self.carImage = p.getCameraImage(IMG_WIDTH, IMG_HEIGHT)[2]
+
         if self.lastTakePicClicked != p.readUserDebugParameter(self.btnTakePic):
             im = Image.fromarray(self.getCarCameraImage(), mode="L")
-            
             im.save("capture.png")
             
             self.lastTakePicClicked = p.readUserDebugParameter(self.btnTakePic)
 
+    def pathControl(self):
+        if self.viewMode == 0:
+            if self.lastRemoveMarkClicked != p.readUserDebugParameter(self.btnRemoveMark):
+                p.removeAllUserDebugItems()
+                
+                self.lastRemoveMarkClicked = p.readUserDebugParameter(self.btnRemoveMark)
+        elif self.viewMode == 1:
+            if self.__counter % 50 == 0:
+                self.leaveMarking(self.trajectoryOn == 1)
+
     def leaveMarking(self, mark):
         LFmarkTo, RFmarkTo, LBmarkTo, RBmarkTo = p.getLinkStates(self.car, self.wheel_indices)
         if mark:
-            p.addUserDebugLine(self.__markFrom[0], LFmarkTo[0], [0, 0, 1], 1, 0)
-            p.addUserDebugLine(self.__markFrom[1], RFmarkTo[0], [0, 0, 1], 1, 0)
-            p.addUserDebugLine(self.__markFrom[2], LBmarkTo[0], [1, 0, 0], 1, 0)
-            p.addUserDebugLine(self.__markFrom[3], RBmarkTo[0], [1, 0, 0], 1, 0)
-        self.__markFrom[0] = LFmarkTo[0]
-        self.__markFrom[1] = RFmarkTo[0]
-        self.__markFrom[2] = LBmarkTo[0]
-        self.__markFrom[3] = RBmarkTo[0]
+            p.addUserDebugLine(self.__markFrom[0], LFmarkTo[0], [1, 0, 1], 1, 0)
+            p.addUserDebugLine(self.__markFrom[1], RFmarkTo[0], [1, 0, 1], 1, 0)
+            p.addUserDebugLine(self.__markFrom[2], LBmarkTo[0], [1, 1, 0], 1, 0)
+            p.addUserDebugLine(self.__markFrom[3], RBmarkTo[0], [1, 1, 0], 1, 0)
+        self.__markFrom = LFmarkTo[0], RFmarkTo[0], LBmarkTo[0], RBmarkTo[0]
 
     def getCarCameraImage(self):
         return np.dot(self.carImage[...,:3], [0.299, 0.587, 0.114]).astype(np.uint8)
@@ -257,6 +262,7 @@ class pySCserver:
         self.pBV.motorControl(self.__motor_speed, self.__motor_turn)
         self.pBV.cameraControl()
         self.pBV.pictureControl()
+        self.pBV.pathControl()
 
         self.pBV.nextFrame(delay)
 
