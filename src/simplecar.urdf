@@ -26,7 +26,7 @@
             <material name="blue"/>
         </visual>
         <inertial>
-            <mass value="100"/>
+            <mass value="6"/>
             <inertia ixx="0.2" ixy="0" ixz="0" iyy="0.2" iyz="0.0" izz="0.2"/>
         </inertial>
     </link>    

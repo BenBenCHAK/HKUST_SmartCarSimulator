@@ -29,9 +29,9 @@ Install [PyBullet](https://pybullet.org/wordpress/) for hosting the 3D simulatio
 Install them if you have not installed before.
 
 ```bash
-pip install pybullet
 pip install numpy
 pip install sockets
+pip install pybullet
 pip install pillow
 ```
 
@@ -127,8 +127,8 @@ There are two modes for our simulation. The God Mode is for freestyle and manual
 
 ## To-do list 
 - **code refactoring and beautifying**
-- timer and cross line
-- car mass distribution, friction, size matching units
+- size matching units, car mass distribution, friction
+- timer
 - only control front wheel for turn, back for speed
 - hoist all constant, reset button to user-stored, save all customizable value to csv (np.savetxt): like a config file
 - client check if lost connection before connecting again (doing)
@@ -143,6 +143,8 @@ There are two modes for our simulation. The God Mode is for freestyle and manual
 - continue commands if server down but client not down
 
 ## Q&A
+
+1. Q: How to solve this error: "TypeError: tuple indices must be integers or slices, not tuple"? A: Install PyBullet after installing NumPy.
 
 <!-- ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. -->
