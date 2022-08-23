@@ -21,28 +21,33 @@
     <link name="base_link">
         <visual>
             <geometry>
-                <box size="0.5 0.3 0.1"/>
+                <box size="0.25 0.15 0.05"/>
             </geometry>
             <material name="blue"/>
         </visual>
+        <collision>
+            <geometry>
+                <box size="0.25 0.15 0.05"/>
+            </geometry>
+        </collision>
         <inertial>
             <mass value="6"/>
             <inertia ixx="0.2" ixy="0" ixz="0" iyy="0.2" iyz="0.0" izz="0.2"/>
         </inertial>
-    </link>    
+    </link>
 
     <!-- Left Front Wheel -->
     <link name="left_front_wheel">
         <visual>
             <geometry>
-                <cylinder length="0.05" radius="0.1"/>
+                <cylinder length="0.025" radius="0.05"/>
             </geometry>
             <origin rpy="1.57075 1.57075 0"/>
             <material name="grey"/>
         </visual>
         <collision>
              <geometry>
-                <cylinder length="0.05" radius="0.1"/>
+                <cylinder length="0.025" radius="0.05"/>
             </geometry>
             <origin rpy="1.57075 1.57075 0"/>
         </collision>
@@ -56,16 +61,16 @@
         <parent link="left_hinge"/>
         <child link="left_front_wheel"/>
         <axis xyz="0 1 0"/>
-        <origin xyz="0 0.2 0"/>
+        <origin xyz="0 0.1 0"/>
     </joint>
 
     <!-- Left Front Wheel - Hinge -->
     <link name="left_hinge">
         <visual>
             <geometry>
-                <box size="0.20 0.02 0.02"/>
+                <box size="0.1 0.01 0.01"/>
             </geometry>
-            <origin xyz="0 0.1 0 " rpy="0 0 1.57075"/>
+            <origin xyz="0 0.05 0" rpy="0 0 1.57075"/>
             <material name="grey"/>
         </visual>
         <inertial>
@@ -78,7 +83,7 @@
         <parent link="base_link"/>
         <child link="left_hinge"/>
         <axis xyz="0 0 1"/>
-        <origin xyz="0.2 0.0 0"/>
+        <origin xyz="0.1 0.0 0"/>
         <limit effort="100" lower="-0.5" upper="0.5" velocity="100"/>
     </joint>
 
@@ -86,14 +91,14 @@
     <link name="right_front_wheel">
         <visual>
             <geometry>
-                <cylinder length="0.05" radius="0.1"/>
+                <cylinder length="0.025" radius="0.05"/>
             </geometry>
             <origin rpy="-1.57075 -1.57075 0"/>
             <material name="grey"/>
         </visual>
         <collision>
              <geometry>
-                <cylinder length="0.05" radius="0.1"/>
+                <cylinder length="0.025" radius="0.05"/>
             </geometry>
             <origin rpy="-1.57075 -1.57075 0"/>
         </collision>
@@ -107,16 +112,16 @@
         <parent link="right_hinge"/>
         <child link="right_front_wheel"/>
         <axis xyz="0 1 0"/>
-        <origin xyz="0 -0.2 0"/>
+        <origin xyz="0 -0.1 0"/>
     </joint>
 
     <!-- Right Front Wheel - Hinge -->
     <link name="right_hinge">
         <visual>
             <geometry>
-                <box size="0.20 0.02 0.02"/>
+                <box size="0.1 0.01 0.01"/>
             </geometry>
-            <origin xyz="0 -0.1 0 " rpy="0 0 -1.57075"/>
+            <origin xyz="0 -0.05 0" rpy="0 0 -1.57075"/>
             <material name="grey"/>
         </visual>
         <inertial>
@@ -129,7 +134,7 @@
         <parent link="base_link"/>
         <child link="right_hinge"/>
         <axis xyz="0 0 1"/>
-        <origin xyz="0.2 0 0"/>
+        <origin xyz="0.1 0 0"/>
         <limit effort="100" lower="-0.5" upper="0.5" velocity="100"/>
     </joint>
 
@@ -137,14 +142,14 @@
     <link name="left_back_wheel">
         <visual>
             <geometry>
-                <cylinder length="0.05" radius="0.1"/>
+                <cylinder length="0.025" radius="0.05"/>
             </geometry>
             <origin rpy="1.57075 1.57075 0"/>
             <material name="grey"/>
         </visual>
         <collision>
              <geometry>
-                <cylinder length="0.05" radius="0.1"/>
+                <cylinder length="0.025" radius="0.05"/>
             </geometry>
             <origin rpy="1.57075 1.57075 0"/>
         </collision>
@@ -158,21 +163,21 @@
         <parent link="base_link"/>
         <child link="left_back_wheel"/>
         <axis xyz="0 1 0"/>
-        <origin xyz="-0.2 0.175 0"/>
+        <origin xyz="-0.1 0.0875 0"/>
     </joint>
 
     <!-- Right Back Wheel -->
     <link name="right_back_wheel">
         <visual>
             <geometry>
-                <cylinder length="0.05" radius="0.1"/>
+                <cylinder length="0.025" radius="0.05"/>
             </geometry>
             <origin rpy="-1.57075 -1.57075 0"/>
             <material name="grey"/>
         </visual>
         <collision>
              <geometry>
-                <cylinder length="0.05" radius="0.1"/>
+                <cylinder length="0.025" radius="0.05"/>
             </geometry>
             <origin rpy="-1.57075 -1.57075 0"/>
         </collision>
@@ -186,20 +191,20 @@
         <parent link="base_link"/>
         <child link="right_back_wheel"/>
         <axis xyz="0 1 0"/>
-        <origin xyz="-0.2 -0.175 0"/>
+        <origin xyz="-0.1 -0.0875 0"/>
     </joint>
 
     <!-- Camera Rod of Car -->
     <link name="camera_rod_link">
         <visual>
             <geometry>
-                <box size="0.05 0.05 0.5"/>
+                <box size="0.025 0.025 0.25"/>
             </geometry>
             <material name="black"/>
         </visual>
         <collision>
             <geometry>
-                <box size="0.05 0.05 0.5"/>
+                <box size="0.025 0.025 0.25"/>
             </geometry>
         </collision>
     </link>
@@ -207,20 +212,20 @@
         <parent link="base_link"/>
         <child link="camera_rod_link"/>
         <axis xyz="0 0 1"/>
-        <origin xyz="0.1 0 0.3"/>
+        <origin xyz="0.05 0 0.15"/>
     </joint>
 
     <!-- Camera Mount of Car -->
     <link name="camera_mount_link">
         <visual>
             <geometry>
-                <box size="0.1 0.1 0.1"/>
+                <box size="0.05 0.05 0.05"/>
             </geometry>
             <material name="gold"/>
         </visual>
         <collision>
             <geometry>
-                <box size="0.1 0.1 0.1"/>
+                <box size="0.05 0.05 0.05"/>
             </geometry>
         </collision>
     </link>
@@ -236,14 +241,14 @@
     <link name="camera_link">
         <visual>
             <geometry>
-                <cylinder length="0.05" radius="0.02"/>
+                <cylinder length="0.025" radius="0.01"/>
             </geometry>
             <material name="yellow"/>
             <origin rpy="0 -1.57075 0"/>
         </visual>
         <collision>
             <geometry>
-                <cylinder length="0.07" radius="0.02"/>
+                <cylinder length="0.025" radius="0.01"/>
             </geometry>
             <origin rpy="0 -1.57075 0"/>
         </collision>
@@ -252,7 +257,7 @@
         <parent link="camera_mount_link"/>
         <child link="camera_link"/>
         <axis xyz="0 1 0"/>
-        <origin xyz="0.05 0 0"/>
+        <origin xyz="0.025 0 0"/>
         <limit lower="0" upper="1"/>
     </joint>
 </robot>

@@ -127,8 +127,9 @@ There are two modes for our simulation. The God Mode is for freestyle and manual
 
 ## To-do list 
 - **code refactoring and beautifying**
-- size matching units, car mass distribution, friction
+- car mass distribution, friction
 - timer
+- first pov control (need disable w and s keys)
 - only control front wheel for turn, back for speed
 - hoist all constant, reset button to user-stored, save all customizable value to csv (np.savetxt): like a config file
 - client check if lost connection before connecting again (doing)

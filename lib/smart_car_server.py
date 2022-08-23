@@ -78,13 +78,13 @@ class pyBulletView:
         self.carImage = p.getCameraImage(IMG_WIDTH, IMG_HEIGHT)[2]
         
         # PyBullet load materials
-        self.car = p.loadURDF('/src/simplecar.urdf', [0, 0, 0.1], globalScaling=0.5)
+        self.car = p.loadURDF('/src/simplecar.urdf', [0, 0, 0.1], globalScaling=1)
         self.plane = p.loadURDF('/src/simpleplane.urdf')
         self.trackId = p.createVisualShape(p.GEOM_MESH, fileName="/src/track.obj")
         p.createMultiBody(0, baseVisualShapeIndex=self.trackId, basePosition=[-4, -4, -0.08])
 
-        self.wheel_indices = [1, 3, 4, 5]
         self.hinge_indices = [0, 2]
+        self.wheel_indices = [1, 3, 4, 5]
         self.camera_indices = [6, 7, 8]
         self.motor_wheels = [4, 5]
         # for joint_number in range(p.getNumJoints(self.car)):
